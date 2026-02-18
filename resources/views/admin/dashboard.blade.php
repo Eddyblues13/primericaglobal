@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Admin Dashboard - Primrica Global Capital')
+@section('title', 'Admin Dashboard - TESLA')
 @section('topTitle', 'Admin Dashboard')
 
 @section('content')
@@ -212,7 +212,7 @@
                         @endif
                     </div>
                     <div class="min-w-0">
-                        <div class="orderTitle">{{ $order->car?->name ?? 'Primrica Global Capital Vehicle' }}</div>
+                        <div class="orderTitle">{{ $order->car?->name ?? 'Tesla Vehicle' }}</div>
                         <div class="orderMeta">
                             {{ $order->user->name }} · {{ $order->created_at->format('M d') }}
                         </div>
