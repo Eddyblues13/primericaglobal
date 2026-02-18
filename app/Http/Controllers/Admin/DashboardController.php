@@ -1,1117 +1,1245 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Models\Stock;
-use App\Models\InvestmentPlan;
-use App\Models\WalletTransaction;
-use App\Models\PaymentMethod;
-use App\Models\TeslaCar;
+use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Models\Order;
 use App\Models\UserInvestment;
 use App\Models\StockPurchase;
+use App\Models\WalletTransaction;
 use App\Models\KycSubmission;
 use App\Models\SupportTicket;
+use App\Models\TeslaCar;
+use App\Models\InvestmentPlan;
+use App\Models\Stock;
+use App\Models\PaymentMethod;
 use App\Models\Notification;
-use App\Mail\SupportTicketCreatedEmail;
-use App\Mail\StockPurchaseConfirmationEmail;
-use App\Mail\InvestmentConfirmationEmail;
-use App\Mail\VehicleOrderConfirmationEmail;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\CustomMail;
 
 class DashboardController extends Controller
 {
     /**
-     * Show the application dashboard.
-     *
-     * @return \Illuminate\Contracts\Support\Renderable
+     * Show the admin dashboard.
      */
     public function index()
     {
-        $user = Auth::user();
+        // Overall statistics
+        $stats = [
+            'total_users' => User::count(),
+            'total_orders' => Order::count(),
+            'total_investments' => UserInvestment::count(),
+            'total_stock_purchases' => StockPurchase::count(),
+            'total_wallet_transactions' => WalletTransaction::count(),
+            'pending_kyc' => KycSubmission::where('status', 'Pending')->count(),
+            'pending_support_tickets' => SupportTicket::where('status', 'open')->count(),
+            'total_revenue' => WalletTransaction::where('type', 'deposit')
+                ->where('status', 'Completed')
+                ->sum('amount'),
+            'pending_deposits' => WalletTransaction::where('type', 'deposit')
+                ->where('status', 'Pending')
+                ->count(),
+            'pending_withdrawals' => WalletTransaction::where('type', 'withdrawal')
+                ->where('status', 'Pending')
+                ->count(),
+        ];
 
-        // Wallet-based stats
-        $transactions = WalletTransaction::where('user_id', $user?->id)
-            ->orderByDesc('occurred_at')
-            ->get();
-
-        $totalDeposits = $transactions->where('direction', 'credit')->sum('amount');
-        $totalWithdrawals = $transactions->where('type', 'withdrawal')->where('direction', 'debit')->sum('amount');
-        $totalInvested = $transactions->where('type', 'investment')->where('direction', 'debit')->sum('amount');
-        $totalProfitDebits = $transactions->where('type', 'profit_distribution')->where('direction', 'debit')->sum('amount');
-
-        // Compute a live balance from transactions
-        $computedBalance = $totalDeposits - $totalWithdrawals - $totalInvested - $totalProfitDebits;
-
-        // Use stored balance on the user if present, otherwise fall back to computed
-        $availableBalance = $user?->available_balance ?? $computedBalance;
-
-        // If migrating fresh, we can initialize the stored balance from the computed value
-        if ($user && is_null($user->available_balance)) {
-            $user->available_balance = $computedBalance;
-            $user->save();
-        }
-
-        // Simple derived stats for the dashboard cards
-        $portfolioValue = $totalDeposits; // overall money flowed into the platform
-        $investmentsValue = $totalInvested;
-        $stockHoldingsValue = max(0, $portfolioValue - $investmentsValue - $totalWithdrawals);
-
-        // Tesla vehicles owned == completed orders count
-        $teslaVehiclesCount = Order::where('user_id', $user?->id)
-            ->where('status', 'Completed')
-            ->count();
-
-        $activeInvestmentsCount = UserInvestment::where('user_id', $user?->id)->count();
-        $stockPositionsCount = StockPurchase::where('user_id', $user?->id)->count();
-
-        // Recent orders for the "Recent Orders" panel
-        $recentOrders = Order::with('car')
-            ->where('user_id', $user?->id)
-            ->orderByDesc('created_at')
-            ->take(5)
-            ->get();
-
-        // Top stocks for Market Overview (top 5)
-        $topStocks = Stock::orderByDesc('change_percent')
-            ->take(5)
-            ->get();
-
-        // Chart data: last 7 days - balance, investments, profit (live-style)
-        $chartLabels = [];
-        $balanceData = [];
-        $investmentsData = [];
-        $profitData = [];
-        $baseProfit = max(0, (float) ($portfolioValue - $totalInvested));
-        for ($i = 6; $i >= 0; $i--) {
-            $date = now()->subDays($i);
-            $chartLabels[] = $date->format('D M j');
-            $endOfDay = $date->copy()->endOfDay();
-            $txUntil = WalletTransaction::where('user_id', $user?->id)
-                ->where('occurred_at', '<=', $endOfDay)
-                ->get();
-            $dep = $txUntil->where('direction', 'credit')->sum('amount');
-            $wit = $txUntil->where('type', 'withdrawal')->where('direction', 'debit')->sum('amount');
-            $inv = $txUntil->where('type', 'investment')->where('direction', 'debit')->sum('amount');
-
-            // Calculate real profit from transactions
-            $profit = $txUntil->where('type', 'profit_distribution')->where('direction', 'credit')->sum('amount')
-                - $txUntil->where('type', 'profit_distribution')->where('direction', 'debit')->sum('amount');
-
-            // Balance is deposits (includes profit credits) - withdrawals - investments
-            // Note: If profit subtraction (debit) happens, it should ideally be treated as a withdrawal-like reduction or negative deposit?
-            // Currently $dep sums all CREDITS.
-            // If we have a profit debit, it is NOT in $dep.
-            // We need to subtract profit debits from balance.
-
-            $profitDebits = $txUntil->where('type', 'profit_distribution')->where('direction', 'debit')->sum('amount');
-            $bal = $dep - $wit - $inv - $profitDebits;
-
-            $balanceData[] = round($bal, 2);
-            $investmentsData[] = round($inv, 2);
-            $profitData[] = round($profit, 2);
-        }
-
-        return view('user.dashboard', [
-            'user' => $user,
-            'dashboardStats' => [
-                'available_balance' => $availableBalance,
-                'portfolio_value' => $portfolioValue,
-                'investments_value' => $investmentsValue,
-                'stock_holdings_value' => $stockHoldingsValue,
-                'tesla_vehicles_count' => $teslaVehiclesCount,
-                'total_deposits' => $totalDeposits,
-                'total_invested' => $totalInvested,
-                'active_investments_count' => $activeInvestmentsCount,
-                'stock_positions_count' => $stockPositionsCount,
-            ],
-            'recentOrders' => $recentOrders,
-            'topStocks' => $topStocks,
-            'chartData' => [
-                'labels' => $chartLabels,
-                'balance' => $balanceData,
-                'investments' => $investmentsData,
-                'profit' => $profitData,
-            ],
-        ]);
-    }
-
-    /**
-     * Show the support page.
-     *
-     * @return \Illuminate\Contracts\Support\Renderable
-     */
-    public function support()
-    {
-        $user = Auth::user();
-
-        if (!$user) {
-            return redirect()->route('login');
-        }
-
-        $tickets = SupportTicket::where('user_id', $user->id)
-            ->orderByDesc('created_at')
+        // Recent activity
+        $recentUsers = User::latest()->take(5)->get();
+        $recentOrders = Order::with(['user', 'car'])->latest()->take(5)->get();
+        $recentTransactions = WalletTransaction::with('user')
+            ->latest()
             ->take(10)
             ->get();
 
-        return view('user.support', [
-            'tickets' => $tickets,
-        ]);
+        return view('admin.dashboard', compact('stats', 'recentUsers', 'recentOrders', 'recentTransactions'));
     }
 
     /**
-     * Handle support form submission.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\RedirectResponse
+     * Manage users
      */
-    public function submitSupport(Request $request)
+    public function users(Request $request)
     {
-        $user = Auth::user();
+        $query = User::query();
 
-        if (!$user) {
-            return redirect()->route('login')
-                ->withErrors(['error' => 'Please log in to submit a support ticket.']);
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('username', 'like', "%{$search}%");
+            });
         }
 
-        $validated = $request->validate([
-            'category' => ['required', 'string', 'in:account,investment,stock,inventory,payment,technical,other'],
-            'subject' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255'],
-            'message' => ['required', 'string', 'min:10'],
-        ]);
+        $users = $query->latest()->paginate(20);
 
-        try {
-            // Create support ticket
-            $ticket = SupportTicket::create([
-                'user_id' => $user->id,
-                'subject' => $validated['subject'],
-                'category' => $validated['category'],
-                'email' => $validated['email'],
-                'message' => $validated['message'],
-                'status' => 'Open',
-            ]);
-
-            // Create notification for user
-            try {
-                Notification::create([
-                    'user_id' => $user->id,
-                    'type' => 'support_ticket_created',
-                    'title' => 'Support Ticket Created',
-                    'message' => "Your support ticket #{$ticket->ticket_number} has been created. We'll respond within 24 hours.",
-                    'link' => route('dashboard.support'),
-                ]);
-            } catch (\Exception $e) {
-                \Log::error('Support notification creation failed: ' . $e->getMessage());
-            }
-
-            // Send email notification
-            try {
-                Mail::to($user->email)->send(new SupportTicketCreatedEmail($user, $ticket));
-            } catch (\Exception $e) {
-                \Log::error('Support ticket email failed: ' . $e->getMessage());
-            }
-
-            return redirect()->route('dashboard.support')
-                ->with('success', "Your support ticket #{$ticket->ticket_number} has been created. We'll get back to you within 24 hours.");
-        } catch (\Exception $e) {
-            \Log::error('Support ticket creation failed: ' . $e->getMessage());
-            \Log::error('Support ticket creation error trace: ' . $e->getTraceAsString());
-
-            return back()
-                ->withErrors(['error' => 'An error occurred while creating your support ticket. Please try again.'])
-                ->withInput();
-        }
+        return view('admin.users', compact('users'));
     }
 
     /**
-     * Show the wallet page.
-     *
-     * @return \Illuminate\Contracts\Support\Renderable
+     * Update user balance
      */
-    public function wallet()
+    public function updateUserBalance(Request $request, User $user)
     {
-        $user = Auth::user();
-
-        $transactions = WalletTransaction::where('user_id', $user->id ?? null)
-            ->orderByDesc('occurred_at')
-            ->get();
-
-        $totalDeposits = $transactions->where('type', 'deposit')->sum('amount');
-        $totalWithdrawals = $transactions->where('type', 'withdrawal')->sum('amount');
-        $totalInvested = $transactions->where('type', 'investment')->sum('amount');
-
-        // Use the user's stored available balance
-        $currentBalance = $user?->available_balance ?? 0.0;
-
-        return view('user.wallet', [
-            'walletSummary' => [
-                'current_balance' => $currentBalance,
-                'total_deposits' => $totalDeposits,
-                'total_withdrawals' => $totalWithdrawals,
-                'total_invested' => $totalInvested,
-            ],
-            'walletTransactions' => $transactions,
-        ]);
-    }
-
-    /**
-     * Show deposit page.
-     */
-    public function walletDeposit()
-    {
-        $user = Auth::user();
-        $currentBalance = $user?->available_balance ?? 0.0;
-
-        $methods = PaymentMethod::where('is_active', true)
-            ->whereIn('type', ['deposit', 'both'])
-            ->orderBy('display_order')
-            ->get();
-
-        return view('user.wallet-deposit', [
-            'currentBalance' => $currentBalance,
-            'depositMethods' => $methods,
-        ]);
-    }
-
-    /**
-     * Show withdrawal page.
-     */
-    public function walletWithdraw()
-    {
-        $user = Auth::user();
-        $currentBalance = $user?->available_balance ?? 0.0;
-
-        $methods = PaymentMethod::where('is_active', true)
-            ->whereIn('type', ['withdrawal', 'both'])
-            ->orderBy('display_order')
-            ->get();
-
-        return view('user.wallet-withdraw', [
-            'currentBalance' => $currentBalance,
-            'withdrawMethods' => $methods,
-        ]);
-    }
-
-    /**
-     * Handle deposit submission.
-     */
-    public function walletDepositSubmit(Request $request)
-    {
-        $user = Auth::user();
-
-        try {
-            $validated = $request->validate([
-                'amount' => ['required', 'numeric', 'min:1'],
-                'payment_method_id' => ['required', 'exists:payment_methods,id'],
-            ]);
-
-            $method = PaymentMethod::where('is_active', true)
-                ->whereIn('type', ['deposit', 'both'])
-                ->findOrFail($validated['payment_method_id']);
-
-            $amount = (float) $validated['amount'];
-
-            // Create wallet transaction record with Pending status
-            WalletTransaction::create([
-                'user_id' => $user->id,
-                'type' => 'deposit',
-                'asset' => $method->name,
-                'title' => 'Deposit via ' . $method->name,
-                'amount' => $amount,
-                'direction' => 'credit',
-                'status' => 'Pending',
-                'occurred_at' => now(),
-            ]);
-
-            // Don't update balance until admin confirms
-
-            return redirect()
-                ->route('dashboard.wallet.deposit')
-                ->with('success', 'Deposit request of $' . number_format($amount, 2) . ' via ' . $method->name . ' has been submitted. Please wait for confirmation from administration.');
-        } catch (\Exception $e) {
-            \Log::error('Wallet deposit submission failed: ' . $e->getMessage());
-
-            return redirect()
-                ->back()
-                ->withInput()
-                ->with('error', 'An unexpected error occurred while creating your deposit. Please try again.');
-        }
-    }
-
-    /**
-     * Handle withdrawal submission.
-     */
-    public function walletWithdrawSubmit(Request $request)
-    {
-        $user = Auth::user();
-
-        try {
-            $method = PaymentMethod::where('is_active', true)
-                ->whereIn('type', ['withdrawal', 'both'])
-                ->findOrFail($request->payment_method_id);
-
-            // Dynamic validation based on payment method category
-            $rules = [
-                'amount' => ['required', 'numeric', 'min:1'],
-                'payment_method_id' => ['required', 'exists:payment_methods,id'],
-            ];
-
-            // Add validation rules based on payment method category
-            if ($method->category === 'crypto') {
-                $rules['wallet_address'] = ['required', 'string', 'min:10'];
-            } elseif ($method->category === 'bank') {
-                $rules['bank_name'] = ['required', 'string'];
-                $rules['account_name'] = ['required', 'string'];
-                $rules['account_number'] = ['required', 'string'];
-                $rules['iban'] = ['nullable', 'string'];
-                $rules['swift_bic'] = ['nullable', 'string'];
-            } elseif ($method->category === 'wallet') {
-                $rules['wallet_email'] = ['required', 'email'];
-            }
-
-            $validated = $request->validate($rules);
-
-            $currentBalance = $user?->available_balance ?? 0.0;
-            $amount = (float) $validated['amount'];
-
-            if ($amount > $currentBalance) {
-                return back()
-                    ->withErrors(['amount' => 'Withdrawal amount cannot exceed your available balance.'])
-                    ->withInput();
-            }
-
-            // Build withdrawal details based on category
-            $withdrawalDetails = [];
-            if ($method->category === 'crypto') {
-                $withdrawalDetails = [
-                    'wallet_address' => $validated['wallet_address'],
-                ];
-            } elseif ($method->category === 'bank') {
-                $withdrawalDetails = [
-                    'bank_name' => $validated['bank_name'],
-                    'account_name' => $validated['account_name'],
-                    'account_number' => $validated['account_number'],
-                    'iban' => $validated['iban'] ?? null,
-                    'swift_bic' => $validated['swift_bic'] ?? null,
-                ];
-            } elseif ($method->category === 'wallet') {
-                $withdrawalDetails = [
-                    'wallet_email' => $validated['wallet_email'],
-                ];
-            }
-
-            // Create wallet transaction record with Pending status
-            WalletTransaction::create([
-                'user_id' => $user->id,
-                'type' => 'withdrawal',
-                'asset' => $method->name,
-                'title' => 'Withdrawal to ' . $method->name,
-                'withdrawal_details' => json_encode($withdrawalDetails),
-                'amount' => $amount,
-                'direction' => 'debit',
-                'status' => 'Pending',
-                'occurred_at' => now(),
-            ]);
-
-            // Don't update balance until admin confirms
-
-            return redirect()
-                ->route('dashboard.wallet.withdraw')
-                ->with('success', 'Withdrawal request of $' . number_format($amount, 2) . ' to ' . $method->name . ' has been submitted. Please wait for confirmation from administration.');
-        } catch (\Exception $e) {
-            \Log::error('Wallet withdrawal submission failed: ' . $e->getMessage());
-
-            return redirect()
-                ->back()
-                ->withInput()
-                ->with('error', 'An unexpected error occurred while creating your withdrawal. Please try again.');
-        }
-    }
-
-    /**
-     * Show the stocks page.
-     *
-     * @return \Illuminate\Contracts\Support\Renderable
-     */
-    public function stocks()
-    {
-        $stocks = Stock::orderBy('ticker')->get();
-
-        // Pre-format stocks for the frontend to avoid complex Blade expressions
-        $stocksForJs = $stocks->map(function (Stock $stock) {
-            return [
-                'id' => $stock->id,
-                'ticker' => $stock->ticker,
-                'name' => $stock->name,
-                'price' => (float) $stock->price,
-                'change' => (float) $stock->change,
-                'changePercent' => (float) $stock->change_percent,
-                'volume' => $stock->volume,
-                'marketCap' => $stock->market_cap,
-                'domain' => $stock->domain,
-                'description' => $stock->description,
-            ];
-        });
-
-        $user = Auth::user();
-        $currentBalance = $user?->available_balance ?? 0.0;
-
-        return view('user.stocks', [
-            'stocks' => $stocks,
-            'stocksForJs' => $stocksForJs,
-            'currentBalance' => $currentBalance,
-        ]);
-    }
-
-    /**
-     * Handle stock purchase submission.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function stockPurchaseSubmit(Request $request)
-    {
-        $user = Auth::user();
-
-        $validated = $request->validate([
-            'stock_id' => ['required', 'exists:stocks,id'],
-            'quantity' => ['required', 'integer', 'min:1'],
-            'order_type' => ['required', 'in:market,limit'],
-            'limit_price' => ['nullable', 'numeric', 'min:0.01', 'required_if:order_type,limit'],
+        $request->validate([
+            'amount' => 'required|numeric|min:0',
+            'action' => 'required|in:add,subtract,set',
         ]);
 
-        $stock = Stock::findOrFail($validated['stock_id']);
-        $quantity = (int) $validated['quantity'];
-        $pricePerShare = (float) $stock->price;
-        $totalAmount = $quantity * $pricePerShare;
-        $currentBalance = $user?->available_balance ?? 0.0;
+        $currentBalance = $user->available_balance ?? 0;
+        $amount = (float) $request->amount;
 
-        // Check if user has sufficient balance
-        if ($totalAmount > $currentBalance) {
-            return back()
-                ->withErrors(['quantity' => 'Insufficient balance. Your current balance is $' . number_format($currentBalance, 2) . '. Total cost: $' . number_format($totalAmount, 2) . '.'])
-                ->withInput();
+        switch ($request->action) {
+            case 'add':
+                $newBalance = $currentBalance + $amount;
+                break;
+            case 'subtract':
+                $newBalance = max(0, $currentBalance - $amount);
+                break;
+            case 'set':
+                $newBalance = $amount;
+                break;
         }
 
-        // For limit orders, validate limit price
-        if ($validated['order_type'] === 'limit') {
-            $limitPrice = (float) $validated['limit_price'];
-            if ($limitPrice < $pricePerShare) {
-                return back()
-                    ->withErrors(['limit_price' => 'Limit price must be greater than or equal to the current market price ($' . number_format($pricePerShare, 2) . ').'])
-                    ->withInput();
-            }
-        }
+        $user->available_balance = $newBalance;
+        $user->save();
 
-        // Start database transaction
-        DB::beginTransaction();
-        try {
-            // Reduce user balance
-            $user->available_balance = $currentBalance - $totalAmount;
-            $user->save();
-
-            // Create stock purchase record
-            $stockPurchase = StockPurchase::create([
-                'user_id' => $user->id,
-                'stock_id' => $stock->id,
-                'quantity' => $quantity,
-                'price_per_share' => $pricePerShare,
-                'total_amount' => $totalAmount,
-                'order_type' => $validated['order_type'],
-                'limit_price' => $validated['order_type'] === 'limit' ? (float) $validated['limit_price'] : null,
-                'status' => $validated['order_type'] === 'market' ? 'Completed' : 'Pending',
-            ]);
-
-            // Create wallet transaction record
-            WalletTransaction::create([
-                'user_id' => $user->id,
-                'type' => 'stock_purchase',
-                'asset' => $stock->ticker,
-                'title' => 'Stock Purchase: ' . $quantity . ' shares of ' . $stock->name . ' (' . $stock->ticker . ')',
-                'amount' => $totalAmount,
-                'direction' => 'debit',
-                'status' => $validated['order_type'] === 'market' ? 'Completed' : 'Pending',
-                'occurred_at' => now(),
-            ]);
-
-            DB::commit();
-
-            // Send email notification
-            try {
-                $orderTypeText = $validated['order_type'] === 'market' ? 'Market Order' : 'Limit Order';
-                $statusText = $validated['order_type'] === 'market' ? 'Completed' : 'Pending';
-
-                Mail::raw(
-                    "Hello {$user->name},\n\n" .
-                        "Your stock purchase has been successfully processed.\n\n" .
-                        "Purchase Details:\n" .
-                        "- Stock: {$stock->name} ({$stock->ticker})\n" .
-                        "- Quantity: {$quantity} shares\n" .
-                        "- Price per Share: $" . number_format($pricePerShare, 2) . "\n" .
-                        "- Total Amount: $" . number_format($totalAmount, 2) . "\n" .
-                        "- Order Type: {$orderTypeText}\n" .
-                        ($validated['order_type'] === 'limit' ? "- Limit Price: $" . number_format($validated['limit_price'], 2) . "\n" : "") .
-                        "- Status: {$statusText}\n\n" .
-                        "Your new balance: $" . number_format($user->available_balance, 2) . "\n\n" .
-                        "Thank you for trading with us!\n\n" .
-                        "Best regards,\nTESLA Trading Team",
-                    function ($message) use ($user) {
-                        $message->to($user->email)
-                            ->subject('Stock Purchase Confirmation - TESLA');
-                    }
-                );
-            } catch (\Exception $e) {
-                // Log email error but don't fail the transaction
-                \Log::error('Failed to send stock purchase email: ' . $e->getMessage());
-            }
-
-            $successMessage = $validated['order_type'] === 'market'
-                ? 'Stock purchase successful! Your purchase has been completed and a confirmation email has been sent.'
-                : 'Limit order placed! Your order will be executed when the stock reaches your limit price. A confirmation email has been sent.';
-
-            return redirect()->route('dashboard.stocks')
-                ->with('success', $successMessage);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error('Stock purchase submission failed: ' . $e->getMessage());
-
-            return back()
-                ->withErrors(['error' => 'An error occurred while processing your stock purchase. Please try again.'])
-                ->withInput();
-        }
-    }
-
-    /**
-     * Show the investments page.
-     *
-     * @return \Illuminate\Contracts\Support\Renderable
-     */
-    public function investments()
-    {
-        $plans = InvestmentPlan::orderBy('display_order')->get();
-
-        $plansForJs = $plans->map(function (InvestmentPlan $plan) {
-            return [
-                'id' => $plan->id,
-                'name' => $plan->name,
-                'slug' => $plan->slug,
-                'category' => $plan->category,
-                'strategy' => $plan->strategy,
-                'riskLevel' => $plan->risk_level,
-                'nav' => (float) ($plan->nav ?? 0),
-                'oneYearReturn' => (float) ($plan->profit_margin ?? $plan->one_year_return ?? 0),
-                'minInvestment' => (float) $plan->min_investment,
-                'maxInvestment' => $plan->max_investment === null ? null : (float) $plan->max_investment,
-                'profitMargin' => (float) ($plan->profit_margin ?? 0),
-                'durationDays' => (int) ($plan->duration_days ?? 0),
-                'durationLabel' => $plan->duration_label ?? '',
-                'isFeatured' => (bool) $plan->is_featured,
-            ];
-        });
-
-        $user = Auth::user();
-        $currentBalance = $user?->available_balance ?? 0.0;
-
-        return view('user.investments', [
-            'investmentPlans' => $plans,
-            'investmentPlansForJs' => $plansForJs,
-            'currentBalance' => $currentBalance,
-        ]);
-    }
-
-    /**
-     * Handle investment submission.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function investSubmit(Request $request)
-    {
-        $user = Auth::user();
-
-        $validated = $request->validate([
-            'investment_plan_id' => ['required', 'exists:investment_plans,id'],
-            'amount' => ['required', 'numeric', 'min:1'],
+        // Create transaction record
+        WalletTransaction::create([
+            'user_id' => $user->id,
+            'type' => 'admin_adjustment',
+            'asset' => 'USD',
+            'title' => 'Admin balance adjustment',
+            'amount' => abs($newBalance - $currentBalance),
+            'direction' => $newBalance > $currentBalance ? 'credit' : 'debit',
+            'status' => 'Completed',
+            'occurred_at' => now(),
         ]);
 
-        $plan = InvestmentPlan::findOrFail($validated['investment_plan_id']);
-        $amount = (float) $validated['amount'];
-        $currentBalance = $user?->available_balance ?? 0.0;
-
-        // Check if amount meets minimum investment requirement
-        if ($amount < $plan->min_investment) {
-            return back()
-                ->withErrors(['amount' => "Minimum investment for this plan is $" . number_format((float) $plan->min_investment, 2) . "."])
-                ->withInput();
-        }
-
-        // Check if amount exceeds maximum investment (when plan has a max)
-        if ($plan->max_investment !== null && $amount > $plan->max_investment) {
-            return back()
-                ->withErrors(['amount' => "Maximum investment for this plan is $" . number_format((float) $plan->max_investment, 2) . "."])
-                ->withInput();
-        }
-
-        // Check if user has sufficient balance
-        if ($amount > $currentBalance) {
-            return back()
-                ->withErrors(['amount' => 'Insufficient balance. Your current balance is $' . number_format($currentBalance, 2) . '.'])
-                ->withInput();
-        }
-
-        // Start database transaction
-        DB::beginTransaction();
-        try {
-            // Reduce user balance
-            $user->available_balance = $currentBalance - $amount;
-            $user->save();
-
-            // Create user investment record
-            $userInvestment = UserInvestment::create([
-                'user_id' => $user->id,
-                'investment_plan_id' => $plan->id,
-                'amount' => $amount,
-                'status' => 'Active',
-            ]);
-
-            // Create wallet transaction record
-            WalletTransaction::create([
-                'user_id' => $user->id,
-                'type' => 'investment',
-                'asset' => $plan->name,
-                'title' => 'Investment in ' . $plan->name,
-                'amount' => $amount,
-                'direction' => 'debit',
-                'status' => 'Completed',
-                'occurred_at' => now(),
-            ]);
-
-            \DB::commit();
-
-            // Send email notification
-            try {
-                Mail::to($user->email)->send(new InvestmentConfirmationEmail(
-                    $user,
-                    $plan,
-                    $amount,
-                    $user->available_balance
-                ));
-            } catch (\Exception $e) {
-                // Log email error but don't fail the transaction
-                \Log::error('Failed to send investment email: ' . $e->getMessage());
-            }
-
-            return redirect()->route('dashboard.investments')
-                ->with('success', 'Investment successful! Your investment has been processed and a confirmation email has been sent.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error('Investment submission failed: ' . $e->getMessage());
-
-            return back()
-                ->withErrors(['error' => 'An error occurred while processing your investment. Please try again.'])
-                ->withInput();
-        }
+        return back()->with('success', 'User balance updated successfully.');
     }
 
     /**
-     * Show the inventory page (Tesla cars).
+     * Update user profit
      */
-    public function inventory()
+    public function updateUserProfit(Request $request, User $user)
     {
-        $cars = TeslaCar::where('is_available', true)
-            ->orderBy('display_order')
-            ->get();
-
-        // Prepare cars data for JavaScript
-        $carsForJs = $cars->map(function ($car) {
-            return [
-                'id' => $car->id,
-                'name' => $car->name,
-                'model' => $car->model ?? '',
-                'year' => $car->year ?? '',
-                'variant' => $car->variant ?? '',
-                'price' => (float) $car->price,
-                'range_miles' => $car->range_miles ?? null,
-                'top_speed_mph' => $car->top_speed_mph ?? null,
-                'zero_to_sixty' => $car->zero_to_sixty ? (float) $car->zero_to_sixty : null,
-                'drivetrain' => $car->drivetrain ?? 'Electric',
-                'image_url' => $car->getPrimaryImage() ?? null,
-                'images' => $car->images ?? [],
-            ];
-        })->values();
-
-        return view('user.inventory', [
-            'cars' => $cars,
-            'carsForJs' => $carsForJs,
-        ]);
-    }
-
-    /**
-     * Show the orders page.
-     */
-    public function orders()
-    {
-        $user = Auth::user();
-
-        $orders = Order::with('car')
-            ->where('user_id', $user?->id)
-            ->orderByDesc('created_at')
-            ->get();
-
-        return view('user.orders', [
-            'orders' => $orders,
-        ]);
-    }
-
-    /**
-     * Place a new car order from inventory page.
-     */
-    public function placeOrder(Request $request)
-    {
-        $user = Auth::user();
-
-        $validated = $request->validate([
-            'car_id' => ['required', 'exists:tesla_cars,id'],
-            'quantity' => ['nullable', 'integer', 'min:1'],
+        $request->validate([
+            'amount' => 'required|numeric|min:0',
+            'action' => 'required|in:add,subtract,set',
         ]);
 
-        $car = TeslaCar::findOrFail($validated['car_id']);
-        $qty = $validated['quantity'] ?? 1;
-        $total = $car->price * $qty;
+        $currentProfit = $user->total_profit ?? 0;
+        $currentBalance = $user->available_balance ?? 0;
+        $amount = (float) $request->amount;
+        $adjustmentAmount = 0;
+        $direction = '';
 
-        // Check if user has sufficient balance
-        $currentBalance = $user->available_balance ?? 0.0;
-
-        if ($total > $currentBalance) {
-            return redirect()->route('dashboard.inventory')
-                ->withErrors(['error' => 'Insufficient balance. You need $' . number_format($total, 2) . ' but only have $' . number_format($currentBalance, 2) . ' available.'])
-                ->withInput();
-        }
-
-        try {
-            DB::beginTransaction();
-
-            // Deduct from user balance
-            $user->available_balance = $currentBalance - $total;
-            $user->save();
-
-            // Create order
-            $order = Order::create([
-                'user_id' => $user->id,
-                'tesla_car_id' => $car->id,
-                'quantity' => $qty,
-                'total_price' => $total,
-                'status' => 'Completed',
-                'order_number' => 'ORD-' . now()->format('Ymd') . '-' . strtoupper(uniqid()),
-            ]);
-
-            // Create wallet transaction record
-            WalletTransaction::create([
-                'user_id' => $user->id,
-                'type' => 'vehicle_purchase',
-                'title' => "Vehicle purchase: {$car->name}",
-                'direction' => 'debit',
-                'amount' => $total,
-                'status' => 'Completed',
-                'occurred_at' => now(),
-            ]);
-
-            DB::commit();
-
-            // Send email notification
-            try {
-                Mail::to($user->email)->send(new VehicleOrderConfirmationEmail(
-                    $user,
-                    $order,
-                    $car,
-                    $qty,
-                    $total,
-                    $user->available_balance
-                ));
-            } catch (\Exception $e) {
-                // Log email error but don't fail the transaction
-                \Log::error('Failed to send order confirmation email: ' . $e->getMessage());
-            }
-
-            return redirect()->route('dashboard.orders')
-                ->with('success', 'Your order for ' . $car->name . ' has been placed. A confirmation email has been sent.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error('Order placement failed: ' . $e->getMessage());
-
-            return redirect()->route('dashboard.inventory')
-                ->withErrors(['error' => 'An error occurred while processing your order. Please try again.'])
-                ->withInput();
-        }
-    }
-
-    /**
-     * Proxy stock logo to avoid CORS issues
-     *
-     * @param string $ticker
-     * @return \Illuminate\Http\Response
-     */
-    public function stockLogo($ticker)
-    {
-        $ticker = strtoupper($ticker);
-
-        // Get domain from database
-        $stock = Stock::where('ticker', $ticker)->first();
-        $domain = $stock ? $stock->domain : null;
-
-        // Try multiple logo sources in order of reliability
-        $sources = [];
-
-        if ($domain) {
-            $sources[] = "https://logo.clearbit.com/{$domain}?size=128";
-        }
-
-        $sources[] = "https://storage.googleapis.com/iex/api/logos/{$ticker}.png";
-        $sources[] = "https://assets2.polygon.io/logos/" . strtolower($ticker) . "/logo.png";
-
-        foreach ($sources as $url) {
-            try {
-                $ch = curl_init($url);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-                curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
-                curl_setopt($ch, CURLOPT_REFERER, 'https://www.google.com/');
-                $image = curl_exec($ch);
-                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
-                curl_close($ch);
-
-                if ($httpCode === 200 && $image && strlen($image) > 100) {
-                    $mimeType = $contentType ?: 'image/png';
-                    return response($image, 200)
-                        ->header('Content-Type', $mimeType)
-                        ->header('Cache-Control', 'public, max-age=86400')
-                        ->header('Access-Control-Allow-Origin', '*');
+        switch ($request->action) {
+            case 'add':
+                $newProfit = $currentProfit + $amount;
+                $adjustmentAmount = $amount;
+                $direction = 'credit';
+                break;
+            case 'subtract':
+                $newProfit = max(0, $currentProfit - $amount);
+                $adjustmentAmount = $currentProfit - $newProfit; // Calculate actual reduction
+                $direction = 'debit';
+                break;
+            case 'set':
+                $newProfit = $amount;
+                if ($newProfit > $currentProfit) {
+                    $adjustmentAmount = $newProfit - $currentProfit;
+                    $direction = 'credit';
+                } else {
+                    $adjustmentAmount = $currentProfit - $newProfit;
+                    $direction = 'debit';
                 }
-            } catch (\Exception $e) {
-                // Continue to next source
-                continue;
-            }
+                break;
         }
 
-        // Return 404 if no logo found
-        return response('', 404);
-    }
+        // Update profit
+        $user->total_profit = $newProfit;
 
-    /**
-     * Show the investment dashboard page with investment history.
-     *
-     * @return \Illuminate\Contracts\Support\Renderable
-     */
-    public function investmentDashboard()
-    {
-        $user = Auth::user();
-
-        // Get user investments with plan details
-        $investments = UserInvestment::with('investmentPlan')
-            ->where('user_id', $user->id)
-            ->orderByDesc('created_at')
-            ->get();
-
-        // Calculate statistics and earnings
-        $totalInvested = $investments->sum('amount');
-        $activeInvestments = $investments->where('status', 'Active')->sum('amount');
-        $completedInvestments = $investments->where('status', 'Completed')->sum('amount');
-
-        // Calculate total earnings (for active investments, calculate based on plan return)
-        $totalEarnings = 0;
-        $investmentsWithEarnings = $investments->map(function ($investment) use (&$totalEarnings) {
-            if ($investment->status === 'Active' && $investment->investmentPlan) {
-                // Calculate earnings based on one_year_return percentage
-                $returnRate = $investment->investmentPlan->one_year_return / 100;
-                // Calculate earnings based on time invested (simplified: assume 1 year for now)
-                $earnings = $investment->amount * $returnRate;
-                $investment->calculated_earnings = $earnings;
-                $totalEarnings += $earnings;
-            } else {
-                $investment->calculated_earnings = 0;
-            }
-            return $investment;
-        });
-
-        return view('user.investment-dashboard', [
-            'investments' => $investmentsWithEarnings,
-            'totalInvested' => $totalInvested,
-            'activeInvestments' => $activeInvestments,
-            'completedInvestments' => $completedInvestments,
-            'totalEarnings' => $totalEarnings,
-        ]);
-    }
-
-    /**
-     * Show the account settings page.
-     *
-     * @return \Illuminate\Contracts\Support\Renderable
-     */
-    public function account()
-    {
-        $user = Auth::user();
-        return view('user.account', [
-            'user' => $user,
-        ]);
-    }
-
-    /**
-     * Update user account information.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function updateAccount(Request $request)
-    {
-        $user = Auth::user();
-
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
-            'current_password' => ['nullable', 'required_with:password'],
-            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
-        ]);
-
-        // Update name and email
-        $user->name = $validated['name'];
-        $user->email = $validated['email'];
-
-        // Update password if provided
-        if (!empty($validated['password'])) {
-            // Verify current password
-            if (!Hash::check($validated['current_password'], $user->password)) {
-                return back()
-                    ->withErrors(['current_password' => 'The current password is incorrect.'])
-                    ->withInput();
+        // Update balance based on direction
+        // Only update balance if there is an actual change
+        if ($adjustmentAmount > 0) {
+            if ($direction === 'credit') {
+                $user->available_balance = $currentBalance + $adjustmentAmount;
+            } elseif ($direction === 'debit') {
+                $user->available_balance = max(0, $currentBalance - $adjustmentAmount);
             }
 
-            $user->password = Hash::make($validated['password']);
+            // Create transaction record for the balance adjustment
+            WalletTransaction::create([
+                'user_id' => $user->id,
+                'type' => 'profit_distribution',
+                'asset' => 'USD',
+                'title' => 'Profit Adjustment',
+                'amount' => $adjustmentAmount,
+                'direction' => $direction,
+                'status' => 'Completed',
+                'occurred_at' => now(),
+            ]);
         }
 
         $user->save();
 
-        return redirect()->route('dashboard.account')
-            ->with('success', 'Your account information has been updated successfully.');
+        return back()->with('success', 'User profit and balance updated successfully.');
     }
 
     /**
-     * Show the KYC verification page.
-     *
-     * @return \Illuminate\Contracts\Support\Renderable
+     * Show user details
      */
-    public function kyc()
+    public function showUser(User $user)
     {
-        $user = Auth::user();
-        $latestSubmission = $user->latestKycSubmission;
+        // Load KYC submissions (we only need latest, but load all to avoid window function issues)
+        $user->load('kycSubmissions');
 
-        return view('user.kyc', [
-            'user' => $user,
-            'latestSubmission' => $latestSubmission,
-        ]);
+        // Get transactions
+        $transactions = WalletTransaction::where('user_id', $user->id)
+            ->latest()
+            ->paginate(10);
+
+        $orders = Order::where('user_id', $user->id)
+            ->with('car')
+            ->latest()
+            ->take(10)
+            ->get();
+
+        $investments = UserInvestment::where('user_id', $user->id)
+            ->with('investmentPlan')
+            ->latest()
+            ->take(10)
+            ->get();
+
+        $stockPurchases = StockPurchase::where('user_id', $user->id)
+            ->with('stock')
+            ->latest()
+            ->take(10)
+            ->get();
+
+        return view('admin.user-show', compact('user', 'transactions', 'orders', 'investments', 'stockPurchases'));
     }
 
     /**
-     * Handle KYC document submission.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
+     * Show create user form
      */
-    public function submitKyc(Request $request)
+    public function createUser()
     {
-        $user = Auth::user();
+        return view('admin.user-form');
+    }
 
+    /**
+     * Store new user
+     */
+    public function storeUser(Request $request)
+    {
         $validated = $request->validate([
-            'id_document' => ['required', 'file', 'mimes:jpeg,jpg,png,pdf', 'max:5120'], // 5MB max
-            'proof_of_address' => ['required', 'file', 'mimes:jpeg,jpg,png,pdf', 'max:5120'],
-            'selfie' => ['required', 'file', 'mimes:jpeg,jpg,png', 'max:5120'],
+            'first_name' => 'nullable|string|max:255',
+            'last_name' => 'nullable|string|max:255',
+            'name' => 'required|string|max:255',
+            'username' => 'nullable|string|max:255|unique:users,username',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+            'available_balance' => 'nullable|numeric|min:0',
+        ]);
+
+        $validated['password'] = Hash::make($validated['password']);
+        $validated['available_balance'] = $validated['available_balance'] ?? 0;
+
+        $user = User::create($validated);
+
+        return redirect()->route('admin.users.show', $user)->with('success', 'User created successfully.');
+    }
+
+    /**
+     * Show edit user form
+     */
+    public function editUser(User $user)
+    {
+        return view('admin.user-form', compact('user'));
+    }
+
+    /**
+     * Update user
+     */
+    public function updateUser(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'first_name' => 'nullable|string|max:255',
+            'last_name' => 'nullable|string|max:255',
+            'name' => 'required|string|max:255',
+            'username' => 'nullable|string|max:255|unique:users,username,' . $user->id,
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:8|confirmed',
+            'available_balance' => 'nullable|numeric|min:0',
+        ]);
+
+        if (!empty($validated['password'])) {
+            $validated['password'] = Hash::make($validated['password']);
+        } else {
+            unset($validated['password']);
+        }
+
+        $user->update($validated);
+
+        return redirect()->route('admin.users.show', $user)->with('success', 'User updated successfully.');
+    }
+
+    /**
+     * Delete user
+     */
+    public function deleteUser(User $user)
+    {
+        $userName = $user->name;
+        $user->delete();
+
+        return redirect()->route('admin.users')->with('success', "User {$userName} deleted successfully.");
+    }
+
+    /**
+     * View user transactions
+     */
+    public function userTransactions(User $user, Request $request)
+    {
+        $query = WalletTransaction::where('user_id', $user->id);
+
+        if ($request->has('type')) {
+            $query->where('type', $request->type);
+        }
+
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $transactions = $query->latest()->paginate(20);
+
+        return view('admin.user-transactions', compact('user', 'transactions'));
+    }
+
+    /**
+     * Send email to user
+     */
+    public function sendEmailToUser(Request $request, User $user)
+    {
+        $request->validate([
+            'subject' => 'required|string|max:255',
+            'message' => 'required|string|max:5000',
         ]);
 
         try {
-            // Store files in storage/app/public/kyc/{user_id}/
-            $kycPath = 'kyc/' . $user->id;
-
-            $idDocumentPath = $request->file('id_document')->store($kycPath, 'public');
-            $proofOfAddressPath = $request->file('proof_of_address')->store($kycPath, 'public');
-            $selfiePath = $request->file('selfie')->store($kycPath, 'public');
-
-            // Create KYC submission record
-            KycSubmission::create([
-                'user_id' => $user->id,
-                'id_document_path' => $idDocumentPath,
-                'proof_of_address_path' => $proofOfAddressPath,
-                'selfie_path' => $selfiePath,
-                'status' => 'Pending',
-            ]);
-
-            return redirect()->route('dashboard.kyc')
-                ->with('success', 'Your KYC documents have been submitted successfully. Our team will review them and you will be notified once the verification is complete.');
+            Mail::to($user->email)->send(new CustomMail($request->subject, $request->message));
+            return back()->with('success', 'Email sent successfully to ' . $user->email);
         } catch (\Exception $e) {
-            \Log::error('KYC submission failed: ' . $e->getMessage());
-
-            return back()
-                ->withErrors(['error' => 'An error occurred while uploading your documents. Please try again.'])
-                ->withInput();
+            return back()->with('error', 'Failed to send email: ' . $e->getMessage());
         }
     }
 
     /**
-     * Get notifications for the authenticated user.
-     *
-     * @return \Illuminate\Http\JsonResponse
+     * Impersonate user (login as user)
      */
-    public function getNotifications()
+    public function impersonateUser(User $user)
     {
-        $user = Auth::user();
-        $notifications = $user->unreadNotifications();
-        $unreadCount = $user->unreadNotificationsCount();
+        // Store admin ID in session for later return
+        session(['admin_id' => Auth::guard('admin')->id()]);
 
-        return response()->json([
-            'notifications' => $notifications,
-            'unread_count' => $unreadCount,
+        // Logout admin
+        Auth::guard('admin')->logout();
+
+        // Login as user
+        Auth::guard('web')->login($user);
+
+        return redirect()->route('dashboard.index')->with('success', 'You are now logged in as ' . $user->name);
+    }
+
+    /**
+     * Stop impersonating and return to admin
+     */
+    public function stopImpersonating()
+    {
+        $adminId = session('admin_id');
+
+        if (!$adminId) {
+            return redirect()->route('admin.login')->with('error', 'No admin session found.');
+        }
+
+        // Logout user
+        Auth::guard('web')->logout();
+
+        // Remove admin_id from session
+        session()->forget('admin_id');
+
+        // Login as admin
+        $admin = \App\Models\Admin::find($adminId);
+        if ($admin) {
+            Auth::guard('admin')->login($admin);
+            return redirect()->route('admin.dashboard')->with('success', 'Returned to admin panel.');
+        }
+
+        return redirect()->route('admin.login')->with('error', 'Admin not found.');
+    }
+
+    /**
+     * Manage orders
+     */
+    public function orders(Request $request)
+    {
+        $query = Order::with(['user', 'car']);
+
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('user', function ($userQuery) use ($search) {
+                    $userQuery->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                })
+                    ->orWhere('id', 'like', "%{$search}%");
+            });
+        }
+
+        $orders = $query->latest()->paginate(20);
+
+        return view('admin.orders', compact('orders'));
+    }
+
+    /**
+     * Update order status
+     */
+    public function updateOrderStatus(Request $request, Order $order)
+    {
+        $request->validate([
+            'status' => 'required|in:Pending,Processing,Completed,Cancelled',
         ]);
+
+        $order->status = $request->status;
+        $order->save();
+
+        return back()->with('success', 'Order status updated successfully.');
     }
 
     /**
-     * Mark notification as read.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * Manage wallet transactions
      */
-    public function markNotificationAsRead(Request $request)
+    public function transactions(Request $request)
     {
-        $user = Auth::user();
-        $notificationId = $request->input('notification_id');
+        $query = WalletTransaction::with('user');
 
-        $notification = Notification::where('id', $notificationId)
-            ->where('user_id', $user->id)
-            ->firstOrFail();
+        if ($request->has('type')) {
+            $query->where('type', $request->type);
+        }
 
-        $notification->markAsRead();
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
 
-        return response()->json(['success' => true]);
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('user', function ($userQuery) use ($search) {
+                    $userQuery->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                })
+                    ->orWhere('id', 'like', "%{$search}%");
+            });
+        }
+
+        $transactions = $query->latest()->paginate(20);
+
+        return view('admin.transactions', compact('transactions'));
     }
 
     /**
-     * Mark all notifications as read.
-     *
-     * @return \Illuminate\Http\JsonResponse
+     * Update transaction status
      */
-    public function markAllNotificationsAsRead()
+    public function updateTransactionStatus(Request $request, WalletTransaction $transaction)
     {
-        $user = Auth::user();
-        Notification::where('user_id', $user->id)
-            ->where('is_read', false)
-            ->update(['is_read' => true]);
+        $request->validate([
+            'status' => 'required|in:Pending,Completed,Rejected',
+        ]);
 
-        return response()->json(['success' => true]);
+        $oldStatus = $transaction->status;
+        $transaction->status = $request->status;
+
+        // If approving a deposit, add to user balance
+        if ($oldStatus === 'Pending' && $request->status === 'Completed' && $transaction->type === 'deposit' && $transaction->direction === 'credit') {
+            $user = $transaction->user;
+            $user->available_balance = ($user->available_balance ?? 0) + $transaction->amount;
+            $user->save();
+        }
+
+        // If approving a withdrawal, subtract from user balance
+        if ($oldStatus === 'Pending' && $request->status === 'Completed' && $transaction->type === 'withdrawal' && $transaction->direction === 'debit') {
+            $user = $transaction->user;
+            $user->available_balance = max(0, ($user->available_balance ?? 0) - $transaction->amount);
+            $user->save();
+        }
+
+        // If rejecting, don't change balance (it was never changed)
+        $transaction->save();
+
+        return back()->with('success', 'Transaction status updated successfully.');
+    }
+
+    /**
+     * Show create transaction form
+     */
+    public function createTransaction()
+    {
+        $users = User::orderBy('name')->get(['id', 'name', 'email']);
+        return view('admin.transaction-form', compact('users'));
+    }
+
+    /**
+     * Store new transaction
+     */
+    public function storeTransaction(Request $request)
+    {
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'type' => 'required|in:deposit,withdrawal,investment,admin_adjustment,other',
+            'asset' => 'nullable|string|max:255',
+            'title' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:0.01',
+            'direction' => 'required|in:credit,debit',
+            'status' => 'required|in:Pending,Completed,Rejected',
+            'withdrawal_details' => 'nullable|string|max:2000',
+        ]);
+
+        $validated['asset'] = $validated['asset'] ?? 'USD';
+        $validated['occurred_at'] = now();
+
+        $transaction = WalletTransaction::create($validated);
+
+        // If created as Completed, update user balance accordingly
+        if ($validated['status'] === 'Completed') {
+            $user = User::find($validated['user_id']);
+            if ($validated['direction'] === 'credit') {
+                $user->available_balance = ($user->available_balance ?? 0) + (float) $validated['amount'];
+            } else {
+                $user->available_balance = max(0, ($user->available_balance ?? 0) - (float) $validated['amount']);
+            }
+            $user->save();
+        }
+
+        return redirect()->route('admin.transactions')->with('success', 'Transaction created successfully.');
+    }
+
+    /**
+     * Show edit transaction form
+     */
+    public function editTransaction(WalletTransaction $transaction)
+    {
+        $transaction->load('user');
+        $users = User::orderBy('name')->get(['id', 'name', 'email']);
+        return view('admin.transaction-form', compact('transaction', 'users'));
+    }
+
+    /**
+     * Update transaction
+     */
+    public function updateTransaction(Request $request, WalletTransaction $transaction)
+    {
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'type' => 'required|in:deposit,withdrawal,investment,admin_adjustment,other',
+            'asset' => 'nullable|string|max:255',
+            'title' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:0.01',
+            'direction' => 'required|in:credit,debit',
+            'status' => 'required|in:Pending,Completed,Rejected',
+            'withdrawal_details' => 'nullable|string|max:2000',
+        ]);
+
+        $validated['asset'] = $validated['asset'] ?? 'USD';
+
+        $oldStatus = $transaction->status;
+        $oldAmount = (float) $transaction->amount;
+        $oldDirection = $transaction->direction;
+        $oldUserId = $transaction->user_id;
+
+        $transaction->update($validated);
+
+        $newStatus = $validated['status'];
+        $newAmount = (float) $validated['amount'];
+        $newDirection = $validated['direction'];
+        $newUserId = (int) $validated['user_id'];
+
+        // Revert old balance effects if status was Completed
+        if ($oldStatus === 'Completed' && $oldUserId) {
+            $oldUser = User::find($oldUserId);
+            if ($oldUser) {
+                if ($oldDirection === 'credit') {
+                    $oldUser->available_balance = max(0, ($oldUser->available_balance ?? 0) - $oldAmount);
+                } else {
+                    $oldUser->available_balance = ($oldUser->available_balance ?? 0) + $oldAmount;
+                }
+                $oldUser->save();
+            }
+        }
+
+        // Apply new balance effects if status is Completed
+        if ($newStatus === 'Completed' && $newUserId) {
+            $newUser = User::find($newUserId);
+            if ($newUser) {
+                if ($newDirection === 'credit') {
+                    $newUser->available_balance = ($newUser->available_balance ?? 0) + $newAmount;
+                } else {
+                    $newUser->available_balance = max(0, ($newUser->available_balance ?? 0) - $newAmount);
+                }
+                $newUser->save();
+            }
+        }
+
+        return redirect()->route('admin.transactions')->with('success', 'Transaction updated successfully.');
+    }
+
+    /**
+     * Delete transaction
+     */
+    public function deleteTransaction(WalletTransaction $transaction)
+    {
+        $user = $transaction->user;
+        $status = $transaction->status;
+        $amount = (float) $transaction->amount;
+        $direction = $transaction->direction;
+
+        $transaction->delete();
+
+        // Revert balance if it was Completed
+        if ($status === 'Completed' && $user) {
+            if ($direction === 'credit') {
+                $user->available_balance = max(0, ($user->available_balance ?? 0) - $amount);
+            } else {
+                $user->available_balance = ($user->available_balance ?? 0) + $amount;
+            }
+            $user->save();
+        }
+
+        return redirect()->route('admin.transactions')->with('success', 'Transaction deleted successfully.');
+    }
+
+    /**
+     * Approve transaction (quick action)
+     */
+    public function approveTransaction(WalletTransaction $transaction)
+    {
+        if ($transaction->status !== 'Pending') {
+            return back()->with('error', 'Only pending transactions can be approved.');
+        }
+
+        $transaction->status = 'Completed';
+        $transaction->save();
+
+        $user = $transaction->user;
+        if ($transaction->direction === 'credit') {
+            $user->available_balance = ($user->available_balance ?? 0) + (float) $transaction->amount;
+        } else {
+            $user->available_balance = max(0, ($user->available_balance ?? 0) - (float) $transaction->amount);
+        }
+        $user->save();
+
+        return back()->with('success', 'Transaction approved successfully.');
+    }
+
+    /**
+     * Reject transaction (quick action)
+     */
+    public function rejectTransaction(WalletTransaction $transaction)
+    {
+        if ($transaction->status !== 'Pending') {
+            return back()->with('error', 'Only pending transactions can be rejected.');
+        }
+
+        $transaction->status = 'Rejected';
+        $transaction->save();
+
+        return back()->with('success', 'Transaction rejected successfully.');
+    }
+
+    /**
+     * Manage KYC submissions
+     */
+    public function kycSubmissions(Request $request)
+    {
+        $query = KycSubmission::with('user');
+
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $submissions = $query->latest()->paginate(20);
+
+        return view('admin.kyc', compact('submissions'));
+    }
+
+    /**
+     * Update KYC status
+     */
+    public function updateKycStatus(Request $request, KycSubmission $kyc)
+    {
+        $request->validate([
+            'status' => 'required|in:Pending,Approved,Rejected',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        $kyc->status = $request->status;
+        if ($request->has('notes') && !empty($request->notes)) {
+            $kyc->rejection_reason = $request->notes;
+        }
+        if ($request->status !== 'Pending') {
+            $kyc->reviewed_at = now();
+        }
+        $kyc->save();
+
+        // Create notification
+        Notification::create([
+            'user_id' => $kyc->user_id,
+            'type' => 'kyc_status_update',
+            'title' => 'KYC Status Update',
+            'message' => 'Your KYC submission has been ' . strtolower($request->status) . '.',
+            'link' => route('dashboard.kyc'),
+        ]);
+
+        return back()->with('success', 'KYC status updated successfully.');
+    }
+
+    /**
+     * Manage support tickets
+     */
+    public function supportTickets(Request $request)
+    {
+        $query = SupportTicket::with('user');
+
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $tickets = $query->latest()->paginate(20);
+
+        return view('admin.support', compact('tickets'));
+    }
+
+    /**
+     * Reply to support ticket
+     */
+    public function replyToTicket(Request $request, SupportTicket $ticket)
+    {
+        $request->validate([
+            'message' => 'required|string|max:5000',
+        ]);
+
+        // Update ticket status if needed
+        if ($ticket->status === 'open') {
+            $ticket->status = 'in_progress';
+            $ticket->save();
+        }
+
+        // Create notification for user
+        Notification::create([
+            'user_id' => $ticket->user_id,
+            'type' => 'support_ticket_reply',
+            'title' => 'Support Ticket Update',
+            'message' => 'You have a new reply on your support ticket: ' . $ticket->subject,
+            'link' => route('dashboard.support'),
+        ]);
+
+        return back()->with('success', 'Reply sent successfully.');
+    }
+
+    /**
+     * Manage Tesla cars inventory
+     */
+    public function inventory(Request $request)
+    {
+        $query = TeslaCar::query();
+
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('model', 'like', "%{$search}%")
+                    ->orWhere('year', 'like', "%{$search}%");
+            });
+        }
+
+        $cars = $query->latest()->paginate(20);
+
+        return view('admin.inventory', compact('cars'));
+    }
+
+    /**
+     * Show create inventory form
+     */
+    public function createInventory()
+    {
+        return view('admin.inventory-form');
+    }
+
+    /**
+     * Store new inventory item
+     */
+    public function storeInventory(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'model' => 'required|string|max:255',
+            'year' => 'required|integer|min:1900|max:' . (date('Y') + 1),
+            'variant' => 'nullable|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'range_miles' => 'nullable|integer|min:0',
+            'top_speed_mph' => 'nullable|integer|min:0',
+            'zero_to_sixty' => 'nullable|numeric|min:0',
+            'drivetrain' => 'nullable|string|max:255',
+            'image_url' => 'nullable|url|max:500',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,jpg,png,webp|max:5120', // 5MB max per image
+            'display_order' => 'nullable|integer|min:0',
+            'is_available' => 'nullable|boolean',
+        ]);
+
+        $validated['is_available'] = $request->has('is_available');
+
+        // Remove images from validated (we'll handle it separately)
+        unset($validated['images']);
+
+        // Create car first to get ID
+        $car = TeslaCar::create($validated);
+
+        // Handle image uploads
+        $uploadedImages = [];
+        if ($request->hasFile('images')) {
+            $uploadPath = public_path('cars/' . $car->id);
+            if (!file_exists($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
+
+            foreach ($request->file('images') as $image) {
+                $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+                $image->move($uploadPath, $filename);
+                $uploadedImages[] = 'cars/' . $car->id . '/' . $filename;
+            }
+        }
+
+        // Update car with uploaded images
+        if (!empty($uploadedImages)) {
+            $car->images = $uploadedImages;
+            $car->save();
+        }
+
+        return redirect()->route('admin.inventory')->with('success', 'Vehicle created successfully.');
+    }
+
+    /**
+     * Show edit inventory form
+     */
+    public function editInventory(TeslaCar $car)
+    {
+        return view('admin.inventory-form', compact('car'));
+    }
+
+    /**
+     * Update inventory item
+     */
+    public function updateInventory(Request $request, TeslaCar $car)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'model' => 'required|string|max:255',
+            'year' => 'required|integer|min:1900|max:' . (date('Y') + 1),
+            'variant' => 'nullable|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'range_miles' => 'nullable|integer|min:0',
+            'top_speed_mph' => 'nullable|integer|min:0',
+            'zero_to_sixty' => 'nullable|numeric|min:0',
+            'drivetrain' => 'nullable|string|max:255',
+            'image_url' => 'nullable|url|max:500',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,jpg,png,webp|max:5120',
+            'delete_images' => 'nullable|array',
+            'delete_images.*' => 'string',
+            'display_order' => 'nullable|integer|min:0',
+            'is_available' => 'nullable|boolean',
+            'is_featured' => 'nullable|boolean',
+        ]);
+
+        $validated['is_available'] = $request->has('is_available');
+        $validated['is_featured'] = $request->has('is_featured');
+
+        // Remove images from validated (we'll handle it separately)
+        unset($validated['images']);
+
+        // Handle image deletions
+        $currentImages = $car->images ?? [];
+        if ($request->has('delete_images')) {
+            foreach ($request->delete_images as $imageToDelete) {
+                $imagePath = public_path($imageToDelete);
+                if (file_exists($imagePath)) {
+                    unlink($imagePath);
+                }
+                $currentImages = array_filter($currentImages, function ($img) use ($imageToDelete) {
+                    return $img !== $imageToDelete;
+                });
+            }
+            $currentImages = array_values($currentImages); // Re-index array
+        }
+
+        // Handle new image uploads
+        $uploadedImages = $currentImages;
+        if ($request->hasFile('images')) {
+            $uploadPath = public_path('cars/' . $car->id);
+            if (!file_exists($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
+
+            foreach ($request->file('images') as $image) {
+                $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+                $image->move($uploadPath, $filename);
+                $uploadedImages[] = 'cars/' . $car->id . '/' . $filename;
+            }
+        }
+
+        // Update car with uploaded images
+        $validated['images'] = $uploadedImages;
+        $car->update($validated);
+
+        return redirect()->route('admin.inventory')->with('success', 'Vehicle updated successfully.');
+    }
+
+    /**
+     * Delete inventory item
+     */
+    public function deleteInventory(TeslaCar $car)
+    {
+        $car->delete();
+
+        return redirect()->route('admin.inventory')->with('success', 'Vehicle deleted successfully.');
+    }
+
+    /**
+     * Manage investment plans
+     */
+    public function investmentPlans(Request $request)
+    {
+        $plans = InvestmentPlan::latest()->paginate(20);
+
+        return view('admin.investment-plans', compact('plans'));
+    }
+
+    /**
+     * Show create investment plan form
+     */
+    public function createInvestmentPlan()
+    {
+        return view('admin.investment-plan-form');
+    }
+
+    /**
+     * Store new investment plan
+     */
+    public function storeInvestmentPlan(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255|unique:investment_plans,slug',
+            'category' => 'nullable|string|max:255',
+            'strategy' => 'nullable|string|max:255',
+            'risk_level' => 'required|in:low,medium,high',
+            'nav' => 'nullable|numeric|min:0',
+            'one_year_return' => 'nullable|numeric',
+            'min_investment' => 'required|numeric|min:0',
+            'max_investment' => 'nullable|numeric|min:0',
+            'profit_margin' => 'required|numeric|min:0',
+            'duration_days' => 'required|integer|min:0',
+            'duration_label' => 'nullable|string|max:64',
+            'is_featured' => 'nullable|boolean',
+            'display_order' => 'nullable|integer|min:0',
+        ]);
+
+        if (empty($validated['slug'])) {
+            $validated['slug'] = \Illuminate\Support\Str::slug($validated['name']);
+        }
+
+        $validated['is_featured'] = $request->has('is_featured');
+        $validated['nav'] = $validated['nav'] ?? 0;
+        $validated['max_investment'] = $validated['max_investment'] ?? null;
+        if ($validated['max_investment'] !== null) {
+            $validated['max_investment'] = (float) $validated['max_investment'];
+        }
+
+        InvestmentPlan::create($validated);
+
+        return redirect()->route('admin.investment-plans')->with('success', 'Investment plan created successfully.');
+    }
+
+    /**
+     * Show edit investment plan form
+     */
+    public function editInvestmentPlan(InvestmentPlan $plan)
+    {
+        return view('admin.investment-plan-form', compact('plan'));
+    }
+
+    /**
+     * Update investment plan
+     */
+    public function updateInvestmentPlan(Request $request, InvestmentPlan $plan)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255|unique:investment_plans,slug,' . $plan->id,
+            'category' => 'nullable|string|max:255',
+            'strategy' => 'nullable|string|max:255',
+            'risk_level' => 'required|in:low,medium,high',
+            'nav' => 'nullable|numeric|min:0',
+            'one_year_return' => 'nullable|numeric',
+            'min_investment' => 'required|numeric|min:0',
+            'max_investment' => 'nullable|numeric|min:0',
+            'profit_margin' => 'required|numeric|min:0',
+            'duration_days' => 'required|integer|min:0',
+            'duration_label' => 'nullable|string|max:64',
+            'is_featured' => 'nullable|boolean',
+            'display_order' => 'nullable|integer|min:0',
+        ]);
+
+        if (empty($validated['slug'])) {
+            $validated['slug'] = \Illuminate\Support\Str::slug($validated['name']);
+        }
+
+        $validated['is_featured'] = $request->has('is_featured');
+        $validated['nav'] = $validated['nav'] ?? 0;
+        $validated['max_investment'] = $validated['max_investment'] ?? null;
+        if ($validated['max_investment'] !== null) {
+            $validated['max_investment'] = (float) $validated['max_investment'];
+        }
+
+        $plan->update($validated);
+
+        return redirect()->route('admin.investment-plans')->with('success', 'Investment plan updated successfully.');
+    }
+
+    /**
+     * Delete investment plan
+     */
+    public function deleteInvestmentPlan(InvestmentPlan $plan)
+    {
+        $plan->delete();
+
+        return redirect()->route('admin.investment-plans')->with('success', 'Investment plan deleted successfully.');
+    }
+
+    /**
+     * Manage stocks
+     */
+    public function stocks(Request $request)
+    {
+        $stocks = Stock::latest()->paginate(20);
+
+        return view('admin.stocks', compact('stocks'));
+    }
+
+    /**
+     * Show create stock form
+     */
+    public function createStock()
+    {
+        return view('admin.stock-form');
+    }
+
+    /**
+     * Store new stock
+     */
+    public function storeStock(Request $request)
+    {
+        $validated = $request->validate([
+            'ticker' => 'required|string|max:10|unique:stocks,ticker',
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'change' => 'nullable|numeric',
+            'change_percent' => 'nullable|numeric',
+            'volume' => 'nullable',
+            'market_cap' => 'nullable|string|max:255',
+            'domain' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:1000',
+        ]);
+
+        // Set default values for non-nullable fields
+        $validated['volume'] = isset($validated['volume']) && $validated['volume'] !== '' ? (string)$validated['volume'] : '0';
+        $validated['change'] = $validated['change'] ?? 0;
+        $validated['change_percent'] = $validated['change_percent'] ?? 0;
+        $validated['market_cap'] = $validated['market_cap'] ?? '';
+
+        Stock::create($validated);
+
+        return redirect()->route('admin.stocks')->with('success', 'Stock created successfully.');
+    }
+
+    /**
+     * Show edit stock form
+     */
+    public function editStock(Stock $stock)
+    {
+        return view('admin.stock-form', compact('stock'));
+    }
+
+    /**
+     * Update stock
+     */
+    public function updateStock(Request $request, Stock $stock)
+    {
+        $validated = $request->validate([
+            'ticker' => 'required|string|max:10|unique:stocks,ticker,' . $stock->id,
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'change' => 'nullable|numeric',
+            'change_percent' => 'nullable|numeric',
+            'volume' => 'nullable',
+            'market_cap' => 'nullable|string|max:255',
+            'domain' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:1000',
+        ]);
+
+        // Set default values for non-nullable fields if empty
+        $validated['volume'] = isset($validated['volume']) && $validated['volume'] !== '' ? (string)$validated['volume'] : ($stock->volume ?? '0');
+        $validated['change'] = $validated['change'] ?? $stock->change ?? 0;
+        $validated['change_percent'] = $validated['change_percent'] ?? $stock->change_percent ?? 0;
+        $validated['market_cap'] = $validated['market_cap'] ?? $stock->market_cap ?? '';
+
+        $stock->update($validated);
+
+        return redirect()->route('admin.stocks')->with('success', 'Stock updated successfully.');
+    }
+
+    /**
+     * Delete stock
+     */
+    public function deleteStock(Stock $stock)
+    {
+        $stock->delete();
+
+        return redirect()->route('admin.stocks')->with('success', 'Stock deleted successfully.');
+    }
+
+    /**
+     * Show payment settings page
+     */
+    public function paymentSettings()
+    {
+        // Keep legacy "settings" view for now, but the main CRUD is in paymentMethods.*
+        // Redirect to the new payment methods index where admin can fully manage methods.
+        return redirect()->route('admin.payment-methods');
+    }
+
+    /**
+     * Update payment settings
+     */
+    public function updatePaymentSettings(Request $request)
+    {
+        // Legacy endpoint no longer used; keep for BC but point admins to the new CRUD.
+        return redirect()->route('admin.payment-methods')
+            ->with('success', 'Please use the Payment Methods page to manage deposit methods.');
+    }
+
+    /**
+     * List all payment methods (admin)
+     */
+    public function paymentMethods()
+    {
+        $methods = PaymentMethod::orderBy('display_order')->orderBy('name')->paginate(20);
+
+        return view('admin.payment-methods', compact('methods'));
+    }
+
+    /**
+     * Show create payment method form
+     */
+    public function createPaymentMethod()
+    {
+        return view('admin.payment-method-form');
+    }
+
+    /**
+     * Store new payment method
+     */
+    public function storePaymentMethod(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255|unique:payment_methods,slug',
+            'type' => 'required|in:deposit,withdrawal,both',
+            'category' => 'nullable|string|max:50',
+            'logo_url' => 'nullable|string|max:500',
+            'details' => 'nullable|string',
+            'display_order' => 'nullable|integer|min:0',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        if (empty($validated['slug'])) {
+            $validated['slug'] = \Illuminate\Support\Str::slug($validated['name']);
+        }
+
+        $validated['category'] = $validated['category'] ?? 'other';
+        $validated['display_order'] = $validated['display_order'] ?? 0;
+        $validated['is_active'] = $request->has('is_active');
+
+        PaymentMethod::create($validated);
+
+        return redirect()->route('admin.payment-methods')->with('success', 'Payment method created successfully.');
+    }
+
+    /**
+     * Show edit payment method form
+     */
+    public function editPaymentMethod(PaymentMethod $method)
+    {
+        return view('admin.payment-method-form', compact('method'));
+    }
+
+    /**
+     * Update payment method
+     */
+    public function updatePaymentMethod(Request $request, PaymentMethod $method)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255|unique:payment_methods,slug,' . $method->id,
+            'type' => 'required|in:deposit,withdrawal,both',
+            'category' => 'nullable|string|max:50',
+            'logo_url' => 'nullable|string|max:500',
+            'details' => 'nullable|string',
+            'display_order' => 'nullable|integer|min:0',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        if (empty($validated['slug'])) {
+            $validated['slug'] = \Illuminate\Support\Str::slug($validated['name']);
+        }
+
+        $validated['category'] = $validated['category'] ?? 'other';
+        $validated['display_order'] = $validated['display_order'] ?? 0;
+        $validated['is_active'] = $request->has('is_active');
+
+        $method->update($validated);
+
+        return redirect()->route('admin.payment-methods')->with('success', 'Payment method updated successfully.');
+    }
+
+    /**
+     * Delete payment method
+     */
+    public function deletePaymentMethod(PaymentMethod $method)
+    {
+        $method->delete();
+
+        return redirect()->route('admin.payment-methods')->with('success', 'Payment method deleted successfully.');
     }
 }
