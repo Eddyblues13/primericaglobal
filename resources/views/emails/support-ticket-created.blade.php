@@ -5,7 +5,8 @@
 
 <p>Hello <strong>{{ $user->name }}</strong>,</p>
 
-<p>Your support ticket has been successfully created. Our team will review your request and get back to you within 24 hours.</p>
+<p>Your support ticket has been successfully created. Our team will review your request and get back to you within 24
+    hours.</p>
 
 <table class="details-table">
     <tr>
@@ -35,15 +36,16 @@
     {{ $ticket->message }}
 </div>
 
-<p>We'll review your request and respond as soon as possible. You can track the status of your ticket in your dashboard.</p>
+<p>We'll review your request and respond as soon as possible. You can track the status of your ticket in your dashboard.
+</p>
 
 <a href="{{ route('dashboard.support') }}" class="button">View Support Tickets</a>
 
 <div class="divider"></div>
 
-<p>Thank you for contacting TESLA Support. We're here to help!</p>
+<p>Thank you for contacting Primerica Global Capital Support. We're here to help!</p>
 
 <p>
-    <strong>The TESLA Support Team</strong>
+    <strong>The Primerica Global Capital Support Team</strong>
 </p>
 @endsection
