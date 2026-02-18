@@ -214,7 +214,7 @@
                     <div class="min-w-0">
                         <div class="orderTitle">{{ $order->car?->name ?? 'Tesla Vehicle' }}</div>
                         <div class="orderMeta">
-                            {{ $order->user->name }} · {{ $order->created_at->format('M d') }}
+                            {{ $order->user?->name ?? 'Deleted User' }} · {{ $order->created_at->format('M d') }}
                         </div>
                     </div>
                 </div>
@@ -262,7 +262,7 @@
                     <div class="min-w-0">
                         <div class="orderTitle">{{ $transaction->title }}</div>
                         <div class="orderMeta">
-                            {{ $transaction->user->name }} · {{ $transaction->type }} · {{
+                            {{ $transaction->user?->name ?? 'Deleted User' }} · {{ $transaction->type }} · {{
                             $transaction->created_at->format('M d, Y H:i') }}
                         </div>
                     </div>
