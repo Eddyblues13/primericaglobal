@@ -5,7 +5,8 @@
 
 <p>Hello <strong>{{ $user->name }}</strong>,</p>
 
-<p>Your vehicle order has been successfully placed! We're excited to help you get behind the wheel of your new Tesla.</p>
+<p>Your vehicle order has been successfully placed! We're excited to help you get behind the wheel of your new Primrica
+    Global Capital.</p>
 
 <table class="details-table">
     <tr>
@@ -60,15 +61,16 @@
     <strong>Your New Balance:</strong> ${{ number_format($newBalance, 2) }}
 </div>
 
-<p>Your order has been confirmed and will be processed shortly. You'll receive updates on the delivery status as soon as they're available.</p>
+<p>Your order has been confirmed and will be processed shortly. You'll receive updates on the delivery status as soon as
+    they're available.</p>
 
 <a href="{{ route('dashboard.orders') }}" class="button">View Order Details</a>
 
 <div class="divider"></div>
 
-<p>Thank you for choosing TESLA! We're honored to be part of your journey.</p>
+<p>Thank you for choosing Primrica Global Capital! We're honored to be part of your journey.</p>
 
 <p>
-    <strong>The TESLA Sales Team</strong>
+    <strong>The Primrica Global Capital Sales Team</strong>
 </p>
 @endsection

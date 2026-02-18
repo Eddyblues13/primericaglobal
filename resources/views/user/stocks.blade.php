@@ -1,6 +1,6 @@
 @extends('layouts.dashboard')
 
-@section('title', 'TESLA Stocks')
+@section('title', 'Primrica Global Capital Stocks')
 
 @section('topTitle', 'Stocks')
 
@@ -8,20 +8,22 @@
 <div class="wrap" id="stocks">
     <!-- Success/Error Messages -->
     @if ($errors->any())
-        <div class="surface" style="margin-bottom: 12px;">
-            <div style="padding: 12px 16px; border-radius: 12px; background:#fee2e2; border:1px solid #fecaca; font-size:12px; color:#991b1b;">
-                @foreach ($errors->all() as $error)
-                    <div>{{ $error }}</div>
-                @endforeach
-            </div>
+    <div class="surface" style="margin-bottom: 12px;">
+        <div
+            style="padding: 12px 16px; border-radius: 12px; background:#fee2e2; border:1px solid #fecaca; font-size:12px; color:#991b1b;">
+            @foreach ($errors->all() as $error)
+            <div>{{ $error }}</div>
+            @endforeach
         </div>
+    </div>
     @endif
     @if (session('success'))
-        <div class="surface" style="margin-bottom: 12px;">
-            <div style="padding: 12px 16px; border-radius: 12px; background:#dcfce7; border:1px solid #bbf7d0; font-size:12px; color:#166534;">
-                {{ session('success') }}
-            </div>
+    <div class="surface" style="margin-bottom: 12px;">
+        <div
+            style="padding: 12px 16px; border-radius: 12px; background:#dcfce7; border:1px solid #bbf7d0; font-size:12px; color:#166534;">
+            {{ session('success') }}
         </div>
+    </div>
     @endif
 
     <!-- Stocks Header -->
@@ -71,7 +73,8 @@
         </button>
         <div class="modalHeader">
             <div class="modalStockLogo" id="modalStockLogo">
-                <img id="modalLogoImg" src="" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
+                <img id="modalLogoImg" src="" alt=""
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
                 <span id="modalLogoFallback" style="display:none;"></span>
             </div>
             <div class="modalStockInfo">
@@ -121,7 +124,8 @@
         </button>
         <div class="modalHeader">
             <div class="modalStockLogo" id="portfolioModalLogo">
-                <img id="portfolioLogoImg" src="" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
+                <img id="portfolioLogoImg" src="" alt=""
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
                 <span id="portfolioLogoFallback" style="display:none;"></span>
             </div>
             <div class="modalStockInfo">
@@ -140,7 +144,8 @@
                     <span>+0.00%</span>
                 </div>
             </div>
-            <form id="portfolioForm" class="portfolioForm" method="POST" action="{{ route('dashboard.stocks.purchase.submit') }}">
+            <form id="portfolioForm" class="portfolioForm" method="POST"
+                action="{{ route('dashboard.stocks.purchase.submit') }}">
                 @csrf
                 <input type="hidden" name="stock_id" id="portfolioStockId">
                 <div class="formGroup">
@@ -164,7 +169,8 @@
                     <label>Total Cost</label>
                     <strong id="totalCost">$0.00</strong>
                 </div>
-                <div style="margin-top: 12px; padding: 10px; background: #f9fafb; border-radius: 8px; font-size: 11px; color: #6b7280;">
+                <div
+                    style="margin-top: 12px; padding: 10px; background: #f9fafb; border-radius: 8px; font-size: 11px; color: #6b7280;">
                     <strong>Available Balance:</strong> ${{ number_format($currentBalance ?? 0, 2) }}
                 </div>
             </form>
@@ -398,8 +404,13 @@
     }
 
     @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
     }
 
     @keyframes slideUp {
@@ -407,6 +418,7 @@
             opacity: 0;
             transform: translateY(20px);
         }
+
         to {
             opacity: 1;
             transform: translateY(0);

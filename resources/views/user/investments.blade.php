@@ -1,6 +1,6 @@
 @extends('layouts.dashboard')
 
-@section('title', 'TESLA Investments')
+@section('title', 'Primrica Global Capital Investments')
 
 @section('topTitle', 'Investments')
 
@@ -366,20 +366,22 @@
 <div class="wrap" id="investments">
     <!-- Success/Error Messages -->
     @if ($errors->any())
-        <div class="surface" style="margin-bottom: 12px;">
-            <div style="padding: 12px 16px; border-radius: 12px; background:#fee2e2; border:1px solid #fecaca; font-size:12px; color:#991b1b;">
-                @foreach ($errors->all() as $error)
-                    <div>{{ $error }}</div>
-                @endforeach
-            </div>
+    <div class="surface" style="margin-bottom: 12px;">
+        <div
+            style="padding: 12px 16px; border-radius: 12px; background:#fee2e2; border:1px solid #fecaca; font-size:12px; color:#991b1b;">
+            @foreach ($errors->all() as $error)
+            <div>{{ $error }}</div>
+            @endforeach
         </div>
+    </div>
     @endif
     @if (session('success'))
-        <div class="surface" style="margin-bottom: 12px;">
-            <div style="padding: 12px 16px; border-radius: 12px; background:#dcfce7; border:1px solid #bbf7d0; font-size:12px; color:#166534;">
-                {{ session('success') }}
-            </div>
+    <div class="surface" style="margin-bottom: 12px;">
+        <div
+            style="padding: 12px 16px; border-radius: 12px; background:#dcfce7; border:1px solid #bbf7d0; font-size:12px; color:#166534;">
+            {{ session('success') }}
         </div>
+    </div>
     @endif
 
     <!-- Header -->
@@ -490,21 +492,16 @@
                 <input type="hidden" name="investment_plan_id" id="investFormPlanId">
                 <div class="planModalBody">
                     <div style="margin-bottom: 16px;">
-                        <label style="display:block; font-size: 11px; font-weight: 900; color: #6b7280; margin-bottom: 6px;">Investment Amount</label>
-                        <input
-                            type="number"
-                            step="0.01"
-                            min="1"
-                            name="amount"
-                            id="investFormAmount"
-                            class="formInput"
-                            placeholder="$ 0.00"
-                            required
-                            style="width:100%; height:44px; padding:0 12px; border:1px solid rgba(0,0,0,.12); border-radius:10px; font-size:14px; font-weight:800; color:#111827;"
-                        />
+                        <label
+                            style="display:block; font-size: 11px; font-weight: 900; color: #6b7280; margin-bottom: 6px;">Investment
+                            Amount</label>
+                        <input type="number" step="0.01" min="1" name="amount" id="investFormAmount" class="formInput"
+                            placeholder="$ 0.00" required
+                            style="width:100%; height:44px; padding:0 12px; border:1px solid rgba(0,0,0,.12); border-radius:10px; font-size:14px; font-weight:800; color:#111827;" />
                         <p style="font-size: 11px; font-weight: 700; color: #9ca3af; margin: 6px 0 0 0;">
                             Minimum: $<span id="investFormMinAmount">0.00</span>
-                            <span id="investFormMaxWrap" style="display: none;"> · Maximum: <span id="investFormMaxAmount">—</span></span>
+                            <span id="investFormMaxWrap" style="display: none;"> · Maximum: <span
+                                    id="investFormMaxAmount">—</span></span>
                         </p>
                         <p style="font-size: 11px; font-weight: 700; color: #9ca3af; margin: 4px 0 0 0;">
                             Available Balance: ${{ number_format($currentBalance ?? 0, 2) }}

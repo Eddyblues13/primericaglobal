@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@yield('title', 'TESLA Dashboard')</title>
+    <title>@yield('title', 'Primrica Global Capital Dashboard')</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -239,7 +239,7 @@
                 padding: 0 12px;
                 height: 54px;
             }
-            
+
             .topTitle {
                 font-size: 13px;
             }
@@ -320,9 +320,9 @@
             width: 360px;
             max-height: 480px;
             background: #fff;
-            border: 1px solid rgba(0,0,0,.10);
+            border: 1px solid rgba(0, 0, 0, .10);
             border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0,0,0,.15);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, .15);
             z-index: 100;
             display: none;
             overflow: hidden;
@@ -334,7 +334,7 @@
 
         .notificationHeader {
             padding: 16px;
-            border-bottom: 1px solid rgba(0,0,0,.06);
+            border-bottom: 1px solid rgba(0, 0, 0, .06);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -364,7 +364,7 @@
 
         .notificationItem {
             padding: 12px 16px;
-            border-bottom: 1px solid rgba(0,0,0,.06);
+            border-bottom: 1px solid rgba(0, 0, 0, .06);
             cursor: pointer;
             transition: background 0.15s;
         }
@@ -424,9 +424,9 @@
             right: 0;
             width: 200px;
             background: #fff;
-            border: 1px solid rgba(0,0,0,.10);
+            border: 1px solid rgba(0, 0, 0, .10);
             border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0,0,0,.15);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, .15);
             z-index: 100;
             display: none;
             overflow: hidden;
@@ -464,7 +464,7 @@
 
         .profileDropdown .profileDropdownDivider {
             height: 1px;
-            background: rgba(0,0,0,.06);
+            background: rgba(0, 0, 0, .06);
             margin: 4px 0;
         }
 
@@ -574,7 +574,7 @@
             .heroText h3 {
                 font-size: 20px;
             }
-            
+
             .heroText p {
                 font-size: 14px;
                 max-width: 100%;
@@ -585,7 +585,7 @@
             .heroText h3 {
                 font-size: 18px;
             }
-            
+
             .heroText p {
                 font-size: 13px;
             }
@@ -650,7 +650,7 @@
                 flex-direction: column;
                 gap: 8px;
             }
-            
+
             .balanceBtns .sbtn {
                 width: 100%;
             }
@@ -838,19 +838,19 @@
                 padding: 16px;
                 min-height: auto;
             }
-            
+
             .quick h4 {
                 font-size: 13px;
             }
-            
+
             .quick p {
                 font-size: 12px;
             }
-            
+
             .quick a {
                 font-size: 12px;
             }
-            
+
             .quick svg {
                 width: 18px;
                 height: 18px;
@@ -949,15 +949,15 @@
                 gap: 8px;
                 padding: 10px 12px;
             }
-            
+
             .panelHead h5 {
                 font-size: 11px;
             }
-            
+
             .panelHead small {
                 font-size: 10px;
             }
-            
+
             .viewAll {
                 font-size: 10px;
             }
@@ -1009,7 +1009,7 @@
                 gap: 12px;
                 padding: 14px;
             }
-            
+
             .orderRight {
                 width: 100%;
                 display: flex;
@@ -1121,16 +1121,16 @@
             .mItem {
                 padding: 14px 16px;
             }
-            
+
             .mRight {
                 margin-right: -16px;
                 padding: 8px 12px;
             }
-            
+
             .mPrice {
                 font-size: 14px;
             }
-            
+
             .mChange {
                 font-size: 12px;
             }
@@ -1184,11 +1184,11 @@
                 max-width: 100%;
                 font-size: 13px;
             }
-            
+
             .mTicker {
                 font-size: 12px;
             }
-            
+
             .mLeft {
                 min-width: 0;
                 flex: 1;
@@ -1249,7 +1249,7 @@
             .chartBody {
                 padding: 10px 12px 12px;
             }
-            
+
             .chartBody svg {
                 min-width: 600px;
             }
@@ -1273,12 +1273,12 @@
                 justify-content: flex-start;
                 margin-top: 10px;
             }
-            
+
             .chartBody {
                 padding: 14px 16px 16px;
                 overflow-x: auto;
             }
-            
+
             .chartWrap svg {
                 min-width: 600px;
             }
@@ -1317,29 +1317,29 @@
             .heroCard {
                 padding: 16px;
             }
-            
+
             .balanceBox {
                 padding: 16px;
             }
-            
+
             .whitePanel {
                 border-radius: 14px;
             }
-            
+
             .stat,
             .quick {
                 border-radius: 14px;
             }
-            
+
             .chartWrap {
                 border-radius: 14px;
             }
-            
+
             .thumb {
                 width: 48px;
                 height: 36px;
             }
-            
+
             .logo {
                 width: 32px;
                 height: 32px;
@@ -1376,58 +1376,75 @@
             background: #0b0c10;
             color: #fff;
             border-radius: 14px;
-            border: 1px solid rgba(255,255,255,.14);
-            box-shadow: 0 18px 45px rgba(0,0,0,.35);
+            border: 1px solid rgba(255, 255, 255, .14);
+            box-shadow: 0 18px 45px rgba(0, 0, 0, .35);
             padding: 12px 12px;
             display: none;
         }
-        .dashPopup.show { display: block; }
+
+        .dashPopup.show {
+            display: block;
+        }
+
         .dashPopupTop {
             display: flex;
             justify-content: space-between;
             gap: 12px;
             align-items: start;
         }
+
         .dashPopupTitle {
             font-size: 13px;
             font-weight: 900;
             margin: 0;
         }
+
         .dashPopupMsg {
             margin-top: 2px;
             font-size: 13px;
             font-weight: 700;
-            color: rgba(255,255,255,.82);
+            color: rgba(255, 255, 255, .82);
             line-height: 1.35;
         }
+
         .dashPopupAmt {
             font-size: 15px;
             font-weight: 900;
             color: #ffffff;
         }
+
         .dashPopupClose {
             width: 28px;
             height: 28px;
             border-radius: 10px;
-            border: 1px solid rgba(255,255,255,.12);
-            background: rgba(255,255,255,.06);
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(255, 255, 255, .06);
             color: #fff;
             cursor: pointer;
             display: grid;
             place-items: center;
             flex-shrink: 0;
         }
-        .dashPopupClose:hover { background: rgba(255,255,255,.10); }
+
+        .dashPopupClose:hover {
+            background: rgba(255, 255, 255, .10);
+        }
+
         @media (max-width: 480px) {
-            .dashPopup { left: 50%; bottom: 12px; transform: translateX(-50%); width: calc(100vw - 24px); }
+            .dashPopup {
+                left: 50%;
+                bottom: 12px;
+                transform: translateX(-50%);
+                width: calc(100vw - 24px);
+            }
         }
     </style>
     @stack('styles')
-    
-    
+
+
     <!-- Smartsupp Live Chat script -->
-<script type="text/javascript">
-var _smartsupp = _smartsupp || {};
+    <script type="text/javascript">
+        var _smartsupp = _smartsupp || {};
 _smartsupp.key = 'cf127355e869bb3da38c4d4c6c9b6bcb4a392c89';
 window.smartsupp||(function(d) {
   var s,c,o=smartsupp=function(){ o._.push(arguments)};o._=[];
@@ -1435,8 +1452,8 @@ window.smartsupp||(function(d) {
   c.type='text/javascript';c.charset='utf-8';c.async=true;
   c.src='https://www.smartsuppchat.com/loader.js?';s.parentNode.insertBefore(c,s);
 })(document);
-</script>
-<noscript>Powered by <a href="https://www.smartsupp.com" target="_blank">Smartsupp</a></noscript>
+    </script>
+    <noscript>Powered by <a href="https://www.smartsupp.com" target="_blank">Smartsupp</a></noscript>
 
 
 </head>
@@ -1448,7 +1465,7 @@ window.smartsupp||(function(d) {
         <!-- ================= SIDEBAR ================= -->
         <aside class="sidebar" id="sidebar">
             <div class="wordmark">
-                <img src="{{ asset('images/logo.png') }}" alt="TESLA Logo" />
+                <img src="{{ asset('images/logo.png') }}" alt="Primrica Global Capital Logo" />
             </div>
 
             <div class="userBox">
@@ -1472,27 +1489,30 @@ window.smartsupp||(function(d) {
                         {{ auth()->user()->email ?? '' }}
                     </div>
                     @php
-                        $user = auth()->user();
-                        $isKycVerified = $user && $user->isKycVerified();
-                        $latestKyc = $user ? $user->latestKycSubmission : null;
+                    $user = auth()->user();
+                    $isKycVerified = $user && $user->isKycVerified();
+                    $latestKyc = $user ? $user->latestKycSubmission : null;
                     @endphp
-                    <div class="pill" style="background: {{ $isKycVerified ? 'rgba(52,211,153,.14)' : ($latestKyc && $latestKyc->status === 'Pending' ? 'rgba(251,191,36,.14)' : 'rgba(239,68,68,.14)') }}; border: 1px solid {{ $isKycVerified ? 'rgba(52,211,153,.45)' : ($latestKyc && $latestKyc->status === 'Pending' ? 'rgba(251,191,36,.45)' : 'rgba(239,68,68,.45)') }};">
-                        <span class="inline-block w-2 h-2 rounded-full" style="background:{{ $isKycVerified ? 'rgba(52,211,153,.95)' : ($latestKyc && $latestKyc->status === 'Pending' ? 'rgba(251,191,36,.95)' : 'rgba(239,68,68,.95)') }}"></span>
+                    <div class="pill"
+                        style="background: {{ $isKycVerified ? 'rgba(52,211,153,.14)' : ($latestKyc && $latestKyc->status === 'Pending' ? 'rgba(251,191,36,.14)' : 'rgba(239,68,68,.14)') }}; border: 1px solid {{ $isKycVerified ? 'rgba(52,211,153,.45)' : ($latestKyc && $latestKyc->status === 'Pending' ? 'rgba(251,191,36,.45)' : 'rgba(239,68,68,.45)') }};">
+                        <span class="inline-block w-2 h-2 rounded-full"
+                            style="background:{{ $isKycVerified ? 'rgba(52,211,153,.95)' : ($latestKyc && $latestKyc->status === 'Pending' ? 'rgba(251,191,36,.95)' : 'rgba(239,68,68,.95)') }}"></span>
                         @if($isKycVerified)
-                            KYC Verified
+                        KYC Verified
                         @elseif($latestKyc && $latestKyc->status === 'Pending')
-                            KYC Pending
+                        KYC Pending
                         @elseif($latestKyc && $latestKyc->status === 'Rejected')
-                            KYC Rejected
+                        KYC Rejected
                         @else
-                            KYC Not Verified
+                        KYC Not Verified
                         @endif
                     </div>
                 </div>
             </div>
 
             <nav class="nav" id="nav">
-                <a href="{{ route('dashboard.index') }}" @if(Route::currentRouteName() == 'dashboard.index') class="active" @endif>
+                <a href="{{ route('dashboard.index') }}" @if(Route::currentRouteName()=='dashboard.index' )
+                    class="active" @endif>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M3 12l2-2 7-7 7 7 2 2" />
                         <path d="M5 10v10h14V10" />
@@ -1500,7 +1520,8 @@ window.smartsupp||(function(d) {
                     Dashboard
                 </a>
 
-                <a href="{{ route('dashboard.wallet') }}" @if(Route::currentRouteName() == 'dashboard.wallet') class="active" @endif>
+                <a href="{{ route('dashboard.wallet') }}" @if(Route::currentRouteName()=='dashboard.wallet' )
+                    class="active" @endif>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2" />
                         <path d="M21 12h-7a2 2 0 0 0 0 4h7" />
@@ -1508,7 +1529,8 @@ window.smartsupp||(function(d) {
                     Wallet
                 </a>
 
-                <a href="{{ route('dashboard.investments') }}" @if(Route::currentRouteName() == 'dashboard.investments') class="active" @endif>
+                <a href="{{ route('dashboard.investments') }}" @if(Route::currentRouteName()=='dashboard.investments' )
+                    class="active" @endif>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M3 17l6-6 4 4 8-8" />
                         <path d="M21 7v6h-6" />
@@ -1516,7 +1538,8 @@ window.smartsupp||(function(d) {
                     Investments
                 </a>
 
-                <a href="{{ route('dashboard.stocks') }}" @if(Route::currentRouteName() == 'dashboard.stocks') class="active" @endif>
+                <a href="{{ route('dashboard.stocks') }}" @if(Route::currentRouteName()=='dashboard.stocks' )
+                    class="active" @endif>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M4 19V5" />
                         <path d="M4 19h16" />
@@ -1527,7 +1550,8 @@ window.smartsupp||(function(d) {
                     Stocks
                 </a>
 
-                <a href="{{ route('dashboard.portfolio') }}" @if(Route::currentRouteName() == 'dashboard.portfolio') class="active" @endif>
+                <a href="{{ route('dashboard.portfolio') }}" @if(Route::currentRouteName()=='dashboard.portfolio' )
+                    class="active" @endif>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M7 7h10v10H7z" />
                         <path d="M4 10V4h6" />
@@ -1536,7 +1560,8 @@ window.smartsupp||(function(d) {
                     Portfolio
                 </a>
 
-                <a href="{{ route('dashboard.investment-dashboard') }}" @if(Route::currentRouteName() == 'dashboard.investment-dashboard') class="active" @endif>
+                <a href="{{ route('dashboard.investment-dashboard') }}"
+                    @if(Route::currentRouteName()=='dashboard.investment-dashboard' ) class="active" @endif>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 21H3" />
                         <path d="M7 16V8" />
@@ -1546,7 +1571,8 @@ window.smartsupp||(function(d) {
                     Investment Dashboard
                 </a>
 
-                <a href="{{ route('dashboard.inventory') }}" @if(Route::currentRouteName() == 'dashboard.inventory') class="active" @endif>
+                <a href="{{ route('dashboard.inventory') }}" @if(Route::currentRouteName()=='dashboard.inventory' )
+                    class="active" @endif>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M3 12h18" />
                         <path d="M6 12l3-7h6l3 7" />
@@ -1556,7 +1582,8 @@ window.smartsupp||(function(d) {
                     Inventory
                 </a>
 
-                <a href="{{ route('dashboard.orders') }}" @if(Route::currentRouteName() == 'dashboard.orders') class="active" @endif>
+                <a href="{{ route('dashboard.orders') }}" @if(Route::currentRouteName()=='dashboard.orders' )
+                    class="active" @endif>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M6 6h15l-1.5 9h-13z" />
                         <path d="M6 6l-2 0" />
@@ -1566,7 +1593,8 @@ window.smartsupp||(function(d) {
                     Orders
                 </a>
 
-                <a href="{{ route('dashboard.account') }}" @if(Route::currentRouteName() == 'dashboard.account') class="active" @endif>
+                <a href="{{ route('dashboard.account') }}" @if(Route::currentRouteName()=='dashboard.account' )
+                    class="active" @endif>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M20 21a8 8 0 1 0-16 0" />
                         <circle cx="12" cy="7" r="4" />
@@ -1574,7 +1602,8 @@ window.smartsupp||(function(d) {
                     Account
                 </a>
 
-                <a href="{{ route('dashboard.kyc') }}" @if(Route::currentRouteName() == 'dashboard.kyc') class="active" @endif>
+                <a href="{{ route('dashboard.kyc') }}" @if(Route::currentRouteName()=='dashboard.kyc' ) class="active"
+                    @endif>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M12 3l8 4v6c0 5-3 8-8 8s-8-3-8-8V7z" />
                         <path d="M9 12l2 2 4-4" />
@@ -1583,7 +1612,8 @@ window.smartsupp||(function(d) {
                 </a>
 
                 <div class="navSection">
-                    <a href="{{ route('dashboard.support') }}" @if(Route::currentRouteName() == 'dashboard.support') class="active" @endif>
+                    <a href="{{ route('dashboard.support') }}" @if(Route::currentRouteName()=='dashboard.support' )
+                        class="active" @endif>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z" />
                             <path d="M8 12h.01M12 12h.01M16 12h.01" />
@@ -1598,8 +1628,8 @@ window.smartsupp||(function(d) {
                 <form method="POST" action="{{ route('logout') }}" style="display: inline;">
                     @csrf
                     <button type="submit" class="logoutBtn">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="opacity:.9"
-                            stroke-width="2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            style="opacity:.9" stroke-width="2">
                             <path d="M10 17l5-5-5-5" />
                             <path d="M15 12H3" />
                             <path d="M21 21V3" />
@@ -1643,7 +1673,8 @@ window.smartsupp||(function(d) {
                     </div>
                     <div class="profileWrapper">
                         <div class="profileIcon" id="profileIcon" title="Account">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b7280"
+                                stroke-width="2">
                                 <path d="M20 21a8 8 0 1 0-16 0" />
                                 <circle cx="12" cy="7" r="4" />
                             </svg>
@@ -1661,59 +1692,68 @@ window.smartsupp||(function(d) {
             </div>
 
             @if(session('admin_id'))
-                <div style="background: #f59e0b; color: white; padding: 12px 18px; margin-bottom: 12px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 700;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                        </svg>
-                        <span>You are viewing as this user. Admin impersonation mode active.</span>
-                    </div>
-                    <form method="POST" action="{{ route('stop.impersonating') }}" style="display: inline;">
-                        @csrf
-                        <button type="submit" style="padding: 6px 12px; border-radius: 6px; background: rgba(255,255,255,.2); color: white; font-size: 12px; font-weight: 900; cursor: pointer; border: 1px solid rgba(255,255,255,.3);">
-                            Return to Admin
-                        </button>
-                    </form>
+            <div
+                style="background: #f59e0b; color: white; padding: 12px 18px; margin-bottom: 12px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 700;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                    </svg>
+                    <span>You are viewing as this user. Admin impersonation mode active.</span>
                 </div>
+                <form method="POST" action="{{ route('stop.impersonating') }}" style="display: inline;">
+                    @csrf
+                    <button type="submit"
+                        style="padding: 6px 12px; border-radius: 6px; background: rgba(255,255,255,.2); color: white; font-size: 12px; font-weight: 900; cursor: pointer; border: 1px solid rgba(255,255,255,.3);">
+                        Return to Admin
+                    </button>
+                </form>
+            </div>
             @endif
 
             @if(session('success'))
-                <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); color: #34d399; padding: 14px 18px; margin: 18px 18px; margin-bottom: 0; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 600;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                    </svg>
-                    <span>{{ session('success') }}</span>
-                </div>
+            <div
+                style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); color: #34d399; padding: 14px 18px; margin: 18px 18px; margin-bottom: 0; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 600;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    style="flex-shrink:0;">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                <span>{{ session('success') }}</span>
+            </div>
             @endif
 
             @if(session('error'))
-                <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #fb7185; padding: 14px 18px; margin: 18px 18px; margin-bottom: 0; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 600;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;">
+            <div
+                style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #fb7185; padding: 14px 18px; margin: 18px 18px; margin-bottom: 0; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 600;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    style="flex-shrink:0;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <span>{{ session('error') }}</span>
+            </div>
+            @endif
+
+            @if($errors->any())
+            <div
+                style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #fb7185; padding: 14px 18px; margin: 18px 18px; margin-bottom: 0; border-radius: 12px; font-size: 14px; font-weight: 600;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        style="flex-shrink:0;">
                         <circle cx="12" cy="12" r="10"></circle>
                         <line x1="12" y1="8" x2="12" y2="12"></line>
                         <line x1="12" y1="16" x2="12.01" y2="16"></line>
                     </svg>
-                    <span>{{ session('error') }}</span>
+                    <span>Please check the following errors:</span>
                 </div>
-            @endif
-
-            @if($errors->any())
-                <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #fb7185; padding: 14px 18px; margin: 18px 18px; margin-bottom: 0; border-radius: 12px; font-size: 14px; font-weight: 600;">
-                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <line x1="12" y1="8" x2="12" y2="12"></line>
-                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                        </svg>
-                        <span>Please check the following errors:</span>
-                    </div>
-                    <ul style="list-style: disc; margin-left: 36px; margin-bottom: 0px; font-weight: 500; font-size: 13px; opacity: 0.9;">
-                        @foreach($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
+                <ul
+                    style="list-style: disc; margin-left: 36px; margin-bottom: 0px; font-weight: 500; font-size: 13px; opacity: 0.9;">
+                    @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
             @endif
 
             @yield('content')

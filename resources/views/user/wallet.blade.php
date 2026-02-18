@@ -1,6 +1,6 @@
 @extends('layouts.dashboard')
 
-@section('title', 'TESLA Wallet')
+@section('title', 'Primrica Global Capital Wallet')
 
 @section('topTitle', 'Wallet')
 
@@ -118,7 +118,7 @@
         align-items: center;
     }
 
-    .walletTxRow + .walletTxRow {
+    .walletTxRow+.walletTxRow {
         border-top: 1px solid rgba(0, 0, 0, .06);
     }
 
@@ -227,7 +227,8 @@
                     </div>
                 </div>
                 <div>
-                    <a href="{{ route('dashboard.wallet.withdraw') }}" class="walletCardLink" style="color:#ef4444;">Withdraw →</a>
+                    <a href="{{ route('dashboard.wallet.withdraw') }}" class="walletCardLink"
+                        style="color:#ef4444;">Withdraw →</a>
                 </div>
             </div>
 
@@ -293,33 +294,33 @@
             </div>
             <div>
                 @forelse ($walletTransactions as $tx)
-                    <div class="walletTxRow">
-                        <div class="walletTxLeft">
-                            <div class="walletTxIcon">
-                                {{ $tx->direction === 'credit' ? '+' : '−' }}
-                            </div>
-                            <div>
-                                <div class="walletTxTitle">{{ $tx->title }}</div>
-                                <div class="walletTxMeta">
-                                    {{ $tx->asset ?? 'Wallet' }} &middot;
-                                    {{ optional($tx->occurred_at)->format('M d, Y') }}
-                                </div>
-                            </div>
+                <div class="walletTxRow">
+                    <div class="walletTxLeft">
+                        <div class="walletTxIcon">
+                            {{ $tx->direction === 'credit' ? '+' : '−' }}
                         </div>
-                        <div class="walletTxRight">
-                            @php
-                                $isCredit = $tx->direction === 'credit';
-                            @endphp
-                            <div class="walletTxAmount {{ $isCredit ? 'walletTxAmountPositive' : '' }}">
-                                {{ $isCredit ? '+' : '' }}${{ number_format($tx->amount, 2) }}
+                        <div>
+                            <div class="walletTxTitle">{{ $tx->title }}</div>
+                            <div class="walletTxMeta">
+                                {{ $tx->asset ?? 'Wallet' }} &middot;
+                                {{ optional($tx->occurred_at)->format('M d, Y') }}
                             </div>
-                            <div class="walletTxStatus">{{ $tx->status }}</div>
                         </div>
                     </div>
+                    <div class="walletTxRight">
+                        @php
+                        $isCredit = $tx->direction === 'credit';
+                        @endphp
+                        <div class="walletTxAmount {{ $isCredit ? 'walletTxAmountPositive' : '' }}">
+                            {{ $isCredit ? '+' : '' }}${{ number_format($tx->amount, 2) }}
+                        </div>
+                        <div class="walletTxStatus">{{ $tx->status }}</div>
+                    </div>
+                </div>
                 @empty
-                    <div style="padding: 32px 20px; text-align:center; font-size:13px; color:#6b7280;">
-                        No transactions yet.
-                    </div>
+                <div style="padding: 32px 20px; text-align:center; font-size:13px; color:#6b7280;">
+                    No transactions yet.
+                </div>
                 @endforelse
             </div>
         </div>

@@ -5,38 +5,45 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    
+
     <!-- Primary Meta Tags -->
-    <title>@yield('title', 'TESLA Market Hub - Invest, Trade Stocks & Buy Premium Vehicles')</title>
-    <meta name="title" content="@yield('meta_title', 'TESLA Market Hub - Invest, Trade Stocks & Buy Premium Vehicles')" />
-    <meta name="description" content="@yield('meta_description', 'Invest in automated plans, trade stocks in real-time, and purchase premium Tesla vehicles. Your all-in-one platform for wealth building and luxury cars.')" />
-    <meta name="keywords" content="@yield('meta_keywords', 'tesla investment, stock trading, premium vehicles, automated investing, wealth building, tesla cars, stock market, investment plans')" />
-    <meta name="author" content="TESLA Market Hub" />
+    <title>@yield('title', 'Primrica Global Capital Market Hub - Invest, Trade Stocks & Buy Premium Vehicles')</title>
+    <meta name="title"
+        content="@yield('meta_title', 'Primrica Global Capital Market Hub - Invest, Trade Stocks & Buy Premium Vehicles')" />
+    <meta name="description"
+        content="@yield('meta_description', 'Invest in automated plans, trade stocks in real-time, and purchase premium Primrica Global Capital vehicles. Your all-in-one platform for wealth building and luxury cars.')" />
+    <meta name="keywords"
+        content="@yield('meta_keywords', 'Primrica Global Capital investment, stock trading, premium vehicles, automated investing, wealth building, Primrica Global Capital cars, stock market, investment plans')" />
+    <meta name="author" content="Primrica Global Capital Market Hub" />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="@yield('canonical', url()->current())" />
-    
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="@yield('og_type', 'website')" />
     <meta property="og:url" content="{{ url()->current() }}" />
-    <meta property="og:title" content="@yield('og_title', 'TESLA Market Hub - Invest, Trade Stocks & Buy Premium Vehicles')" />
-    <meta property="og:description" content="@yield('og_description', 'Invest in automated plans, trade stocks in real-time, and purchase premium Tesla vehicles. Your all-in-one platform for wealth building and luxury cars.')" />
+    <meta property="og:title"
+        content="@yield('og_title', 'Primrica Global Capital Market Hub - Invest, Trade Stocks & Buy Premium Vehicles')" />
+    <meta property="og:description"
+        content="@yield('og_description', 'Invest in automated plans, trade stocks in real-time, and purchase premium Primrica Global Capital vehicles. Your all-in-one platform for wealth building and luxury cars.')" />
     <meta property="og:image" content="@yield('og_image', asset('/images/og-default.jpg'))" />
-    <meta property="og:site_name" content="TESLA Market Hub" />
-    
+    <meta property="og:site_name" content="Primrica Global Capital Market Hub" />
+
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content="{{ url()->current() }}" />
-    <meta property="twitter:title" content="@yield('twitter_title', 'TESLA Market Hub - Invest, Trade Stocks & Buy Premium Vehicles')" />
-    <meta property="twitter:description" content="@yield('twitter_description', 'Invest in automated plans, trade stocks in real-time, and purchase premium Tesla vehicles. Your all-in-one platform for wealth building and luxury cars.')" />
+    <meta property="twitter:title"
+        content="@yield('twitter_title', 'Primrica Global Capital Market Hub - Invest, Trade Stocks & Buy Premium Vehicles')" />
+    <meta property="twitter:description"
+        content="@yield('twitter_description', 'Invest in automated plans, trade stocks in real-time, and purchase premium Primrica Global Capital vehicles. Your all-in-one platform for wealth building and luxury cars.')" />
     <meta property="twitter:image" content="@yield('twitter_image', asset('/images/og-default.jpg'))" />
-    
+
     <!-- Theme Color -->
     <meta name="theme-color" content="#E31937" />
     <meta name="msapplication-TileColor" content="#E31937" />
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{{ asset('/favicon.ico') }}" />
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 
@@ -55,56 +62,73 @@
             background: #0b0c10;
             color: #fff;
             border-radius: 14px;
-            border: 1px solid rgba(255,255,255,.14);
-            box-shadow: 0 18px 45px rgba(0,0,0,.35);
+            border: 1px solid rgba(255, 255, 255, .14);
+            box-shadow: 0 18px 45px rgba(0, 0, 0, .35);
             padding: 12px 12px;
             display: none;
         }
-        .sitePopup.show { display: block; }
+
+        .sitePopup.show {
+            display: block;
+        }
+
         .sitePopupTop {
             display: flex;
             justify-content: space-between;
             gap: 12px;
             align-items: start;
         }
+
         .sitePopupTitle {
             font-size: 13px;
             font-weight: 900;
             margin: 0;
         }
+
         .sitePopupMsg {
             margin-top: 2px;
             font-size: 13px;
             font-weight: 700;
-            color: rgba(255,255,255,.82);
+            color: rgba(255, 255, 255, .82);
             line-height: 1.35;
         }
+
         .sitePopupAmt {
             font-size: 15px;
             font-weight: 900;
             color: #ffffff;
         }
+
         .sitePopupClose {
             width: 28px;
             height: 28px;
             border-radius: 10px;
-            border: 1px solid rgba(255,255,255,.12);
-            background: rgba(255,255,255,.06);
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(255, 255, 255, .06);
             color: #fff;
             cursor: pointer;
             display: grid;
             place-items: center;
             flex-shrink: 0;
         }
-        .sitePopupClose:hover { background: rgba(255,255,255,.10); }
+
+        .sitePopupClose:hover {
+            background: rgba(255, 255, 255, .10);
+        }
+
         @media (max-width: 480px) {
-            .sitePopup { left: 50%; bottom: 12px; transform: translateX(-50%); width: calc(100vw - 24px); }
+            .sitePopup {
+                left: 50%;
+                bottom: 12px;
+                transform: translateX(-50%);
+                width: calc(100vw - 24px);
+            }
         }
     </style>
-    
+
     <!-- Smartsupp Live Chat script -->
-<script type="text/javascript">
-var _smartsupp = _smartsupp || {};
+    <script type="text/javascript">
+        var _smartsupp = _smartsupp || {};
 _smartsupp.key = 'cf127355e869bb3da38c4d4c6c9b6bcb4a392c89';
 window.smartsupp||(function(d) {
   var s,c,o=smartsupp=function(){ o._.push(arguments)};o._=[];
@@ -112,8 +136,8 @@ window.smartsupp||(function(d) {
   c.type='text/javascript';c.charset='utf-8';c.async=true;
   c.src='https://www.smartsuppchat.com/loader.js?';s.parentNode.insertBefore(c,s);
 })(document);
-</script>
-<noscript>Powered by <a href="https://www.smartsupp.com" target="_blank">Smartsupp</a></noscript>
+    </script>
+    <noscript>Powered by <a href="https://www.smartsupp.com" target="_blank">Smartsupp</a></noscript>
 
 
 </head>
@@ -187,24 +211,24 @@ window.smartsupp||(function(d) {
             setInterval(showOnce, 20000);
         })();
     </script>
-    
+
     <!-- Structured Data (JSON-LD) -->
     <script type="application/ld+json">
-    {
+        {
         "@context": "https://schema.org",
         "@type": "Organization",
-        "name": "TESLA Market Hub",
+        "name": "Primrica Global Capital Market Hub",
         "url": "{{ config('app.url') }}",
         "logo": "{{ asset('/images/logo.png') }}",
-        "description": "Invest in automated plans, trade stocks in real-time, and purchase premium Tesla vehicles.",
+        "description": "Invest in automated plans, trade stocks in real-time, and purchase premium Primrica Global Capital vehicles.",
         "sameAs": [
-            "https://www.facebook.com/teslamarkethub",
-            "https://www.twitter.com/teslamarkethub",
-            "https://www.instagram.com/teslamarkethub"
+            "https://www.facebook.com/Primrica Global Capitalmarkethub",
+            "https://www.twitter.com/Primrica Global Capitalmarkethub",
+            "https://www.instagram.com/Primrica Global Capitalmarkethub"
         ],
         "contactPoint": {
             "@type": "ContactPoint",
-            "telephone": "+1-800-TESLA-HUB",
+            "telephone": "+1-800-Primrica Global Capital-HUB",
             "contactType": "Customer Service"
         }
     }

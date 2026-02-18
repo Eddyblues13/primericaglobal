@@ -42,15 +42,17 @@
     <strong>Your New Balance:</strong> ${{ number_format($newBalance, 2) }}
 </div>
 
-<p>Your investment is now active and will start generating returns according to the plan's strategy. You can track your investment performance in your dashboard.</p>
+<p>Your investment is now active and will start generating returns according to the plan's strategy. You can track your
+    investment performance in your dashboard.</p>
 
 <a href="{{ route('dashboard.investment-dashboard') }}" class="button button-success">View Investment Dashboard</a>
 
 <div class="divider"></div>
 
-<p>Thank you for investing with TESLA. We're committed to helping you achieve your financial goals!</p>
+<p>Thank you for investing with Primrica Global Capital. We're committed to helping you achieve your financial goals!
+</p>
 
 <p>
-    <strong>The TESLA Investment Team</strong>
+    <strong>The Primrica Global Capital Investment Team</strong>
 </p>
 @endsection

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@yield('title', 'Admin Dashboard - TESLA')</title>
+    <title>@yield('title', 'Admin Dashboard - Primrica Global Capital')</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -423,10 +423,10 @@
                 display: block;
                 margin-bottom: 12px;
                 background: #fff;
-                border: 1px solid rgba(0,0,0,.08);
+                border: 1px solid rgba(0, 0, 0, .08);
                 border-radius: 12px;
                 padding: 12px;
-                box-shadow: 0 1px 3px rgba(0,0,0,.1);
+                box-shadow: 0 1px 3px rgba(0, 0, 0, .1);
             }
 
             .whitePanel tbody td {
@@ -434,7 +434,7 @@
                 padding: 8px 0;
                 text-align: left !important;
                 border: none;
-                border-bottom: 1px solid rgba(0,0,0,.06);
+                border-bottom: 1px solid rgba(0, 0, 0, .06);
             }
 
             .whitePanel tbody td:last-child {
@@ -509,7 +509,7 @@
                 flex-direction: column;
             }
 
-            .whitePanel form[method="GET"] > div {
+            .whitePanel form[method="GET"]>div {
                 width: 100%;
             }
 
@@ -543,11 +543,11 @@
             }
 
             /* Search forms - stack vertically */
-            form[method="GET"] > div[style*="display: flex"] {
+            form[method="GET"]>div[style*="display: flex"] {
                 flex-direction: column !important;
             }
 
-            form[method="GET"] > div[style*="display: flex"] > div {
+            form[method="GET"]>div[style*="display: flex"]>div {
                 width: 100% !important;
                 min-width: 100% !important;
             }
@@ -587,7 +587,7 @@
             }
 
             /* Grid layouts in forms */
-            .whitePanel form > div[style*="grid"] {
+            .whitePanel form>div[style*="grid"] {
                 grid-template-columns: 1fr !important;
                 gap: 12px !important;
             }
@@ -597,7 +597,7 @@
                 flex-direction: column !important;
             }
 
-            .action-buttons > * {
+            .action-buttons>* {
                 width: 100% !important;
             }
 
@@ -622,7 +622,8 @@
             select,
             textarea {
                 min-height: 44px;
-                font-size: 16px !important; /* Prevents zoom on iOS */
+                font-size: 16px !important;
+                /* Prevents zoom on iOS */
             }
 
             /* Wordmark and user box */
@@ -913,7 +914,7 @@
         <!-- ================= SIDEBAR ================= -->
         <aside class="sidebar" id="sidebar">
             <div class="wordmark">
-                <img src="{{ asset('images/logo.png') }}" alt="TESLA Logo" />
+                <img src="{{ asset('images/logo.png') }}" alt="Primrica Global Capital Logo" />
                 <span style="font-size: 11px; opacity: .6; margin-left: 8px;">ADMIN</span>
             </div>
 
@@ -945,7 +946,8 @@
             </div>
 
             <nav class="nav" id="nav">
-                <a href="{{ route('admin.dashboard') }}" @if(Route::currentRouteName() == 'admin.dashboard') class="active" @endif>
+                <a href="{{ route('admin.dashboard') }}" @if(Route::currentRouteName()=='admin.dashboard' )
+                    class="active" @endif>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M3 12l2-2 7-7 7 7 2 2" />
                         <path d="M5 10v10h14V10" />
@@ -953,7 +955,8 @@
                     Dashboard
                 </a>
 
-                <a href="{{ route('admin.users') }}" @if(Route::currentRouteName() == 'admin.users') class="active" @endif>
+                <a href="{{ route('admin.users') }}" @if(Route::currentRouteName()=='admin.users' ) class="active"
+                    @endif>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M20 21a8 8 0 1 0-16 0" />
                         <circle cx="12" cy="7" r="4" />
@@ -961,7 +964,8 @@
                     Users
                 </a>
 
-                <a href="{{ route('admin.orders') }}" @if(Route::currentRouteName() == 'admin.orders') class="active" @endif>
+                <a href="{{ route('admin.orders') }}" @if(Route::currentRouteName()=='admin.orders' ) class="active"
+                    @endif>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M6 6h15l-1.5 9h-13z" />
                         <path d="M6 6l-2 0" />
@@ -971,7 +975,8 @@
                     Orders
                 </a>
 
-                <a href="{{ route('admin.transactions') }}" @if(Route::currentRouteName() == 'admin.transactions') class="active" @endif>
+                <a href="{{ route('admin.transactions') }}" @if(Route::currentRouteName()=='admin.transactions' )
+                    class="active" @endif>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2" />
                         <path d="M21 12h-7a2 2 0 0 0 0 4h7" />
@@ -979,14 +984,15 @@
                     Transactions
                 </a>
 
-                <a href="{{ route('admin.payment-settings') }}" @if(Route::currentRouteName() == 'admin.payment-settings') class="active" @endif>
+                <a href="{{ route('admin.payment-settings') }}" @if(Route::currentRouteName()=='admin.payment-settings'
+                    ) class="active" @endif>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                     </svg>
                     Payment Settings
                 </a>
 
-                <a href="{{ route('admin.kyc') }}" @if(Route::currentRouteName() == 'admin.kyc') class="active" @endif>
+                <a href="{{ route('admin.kyc') }}" @if(Route::currentRouteName()=='admin.kyc' ) class="active" @endif>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M12 3l8 4v6c0 5-3 8-8 8s-8-3-8-8V7z" />
                         <path d="M9 12l2 2 4-4" />
@@ -994,7 +1000,8 @@
                     KYC Submissions
                 </a>
 
-                <a href="{{ route('admin.support') }}" @if(Route::currentRouteName() == 'admin.support') class="active" @endif>
+                <a href="{{ route('admin.support') }}" @if(Route::currentRouteName()=='admin.support' ) class="active"
+                    @endif>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z" />
                         <path d="M8 12h.01M12 12h.01M16 12h.01" />
@@ -1003,7 +1010,8 @@
                 </a>
 
                 <div class="navSection">
-                    <a href="{{ route('admin.inventory') }}" @if(Route::currentRouteName() == 'admin.inventory') class="active" @endif>
+                    <a href="{{ route('admin.inventory') }}" @if(Route::currentRouteName()=='admin.inventory' )
+                        class="active" @endif>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M3 12h18" />
                             <path d="M6 12l3-7h6l3 7" />
@@ -1013,7 +1021,8 @@
                         Inventory
                     </a>
 
-                    <a href="{{ route('admin.investment-plans') }}" @if(Route::currentRouteName() == 'admin.investment-plans') class="active" @endif>
+                    <a href="{{ route('admin.investment-plans') }}"
+                        @if(Route::currentRouteName()=='admin.investment-plans' ) class="active" @endif>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M3 17l6-6 4 4 8-8" />
                             <path d="M21 7v6h-6" />
@@ -1021,7 +1030,8 @@
                         Investment Plans
                     </a>
 
-                    <a href="{{ route('admin.stocks') }}" @if(Route::currentRouteName() == 'admin.stocks') class="active" @endif>
+                    <a href="{{ route('admin.stocks') }}" @if(Route::currentRouteName()=='admin.stocks' ) class="active"
+                        @endif>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M4 19V5" />
                             <path d="M4 19h16" />
@@ -1039,8 +1049,8 @@
                 <form method="POST" action="{{ route('admin.logout') }}" style="display: inline;">
                     @csrf
                     <button type="submit" class="logoutBtn">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="opacity:.9"
-                            stroke-width="2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            style="opacity:.9" stroke-width="2">
                             <path d="M10 17l5-5-5-5" />
                             <path d="M15 12H3" />
                             <path d="M21 21V3" />

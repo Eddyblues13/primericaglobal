@@ -3,10 +3,10 @@
     <div class="wrap py-14">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-10 items-start">
 
-            <!-- Left: Tesla logo only -->
+            <!-- Left: Primrica Global Capital logo only -->
             <div>
                 <div class="text-[22px] font-[900] tracking-[.35em]">
-                    TESLA
+                    Primrica Global Capital
                 </div>
             </div>
 

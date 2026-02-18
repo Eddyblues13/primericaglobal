@@ -48,15 +48,16 @@
     <strong>Your New Balance:</strong> ${{ number_format($newBalance, 2) }}
 </div>
 
-<p>Your shares have been added to your portfolio. You can view your stock holdings and track performance in your dashboard.</p>
+<p>Your shares have been added to your portfolio. You can view your stock holdings and track performance in your
+    dashboard.</p>
 
 <a href="{{ route('dashboard.stocks') }}" class="button">View Portfolio</a>
 
 <div class="divider"></div>
 
-<p>Thank you for trading with TESLA!</p>
+<p>Thank you for trading with Primrica Global Capital!</p>
 
 <p>
-    <strong>The TESLA Trading Team</strong>
+    <strong>The Primrica Global Capital Trading Team</strong>
 </p>
 @endsection

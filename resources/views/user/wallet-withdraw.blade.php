@@ -1,16 +1,17 @@
 @extends('layouts.dashboard')
 
-@section('title', 'TESLA Wallet - Withdraw Funds')
+@section('title', 'Primrica Global Capital Wallet - Withdraw Funds')
 @section('topTitle', 'Withdraw Funds')
 
 @push('styles')
 <style>
     .walletFormWrap {
         border-radius: 16px;
-        border: 1px solid rgba(0,0,0,.06);
+        border: 1px solid rgba(0, 0, 0, .06);
         background: #fff;
         padding: 16px;
     }
+
     .walletHero {
         background: linear-gradient(120deg, #0b0c10 0%, #111827 70%);
         color: #fff;
@@ -20,85 +21,160 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 14px;
-        box-shadow: 0 18px 36px rgba(0,0,0,.25);
+        box-shadow: 0 18px 36px rgba(0, 0, 0, .25);
     }
-    .walletHeroTitle { margin: 0 0 6px 0; font-size: 16px; font-weight: 900; }
-    .walletHeroSubtitle { margin: 0; font-size: 12px; font-weight: 700; color: rgba(255,255,255,.82); }
+
+    .walletHeroTitle {
+        margin: 0 0 6px 0;
+        font-size: 16px;
+        font-weight: 900;
+    }
+
+    .walletHeroSubtitle {
+        margin: 0;
+        font-size: 12px;
+        font-weight: 700;
+        color: rgba(255, 255, 255, .82);
+    }
+
     .walletBalanceCard {
-        background: rgba(255,255,255,.08);
-        border: 1px solid rgba(255,255,255,.15);
+        background: rgba(255, 255, 255, .08);
+        border: 1px solid rgba(255, 255, 255, .15);
         border-radius: 12px;
         padding: 10px 12px;
         text-align: right;
         min-width: 180px;
     }
-    .walletBalanceLabel { font-size: 11px; font-weight: 800; opacity: .85; margin: 0; }
-    .walletBalanceValue { font-size: 16px; font-weight: 900; margin: 2px 0 0 0; }
-    .formLabel { display:block; font-size: 11px; font-weight: 900; color: #6b7280; margin-bottom: 6px; }
-    .formInput { width:100%; height:44px; padding:0 12px; border:1px solid rgba(0,0,0,.12); border-radius:10px; font-size:14px; font-weight:800; color:#111827; }
-    .hintText { font-size: 11px; font-weight: 700; color: #9ca3af; margin: 6px 0 0 0; }
+
+    .walletBalanceLabel {
+        font-size: 11px;
+        font-weight: 800;
+        opacity: .85;
+        margin: 0;
+    }
+
+    .walletBalanceValue {
+        font-size: 16px;
+        font-weight: 900;
+        margin: 2px 0 0 0;
+    }
+
+    .formLabel {
+        display: block;
+        font-size: 11px;
+        font-weight: 900;
+        color: #6b7280;
+        margin-bottom: 6px;
+    }
+
+    .formInput {
+        width: 100%;
+        height: 44px;
+        padding: 0 12px;
+        border: 1px solid rgba(0, 0, 0, .12);
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 800;
+        color: #111827;
+    }
+
+    .hintText {
+        font-size: 11px;
+        font-weight: 700;
+        color: #9ca3af;
+        margin: 6px 0 0 0;
+    }
+
     .methodCard {
-        border:1px solid rgba(0,0,0,.08);
-        border-radius:12px;
-        padding:12px;
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        gap:12px;
-        background:#fff;
+        border: 1px solid rgba(0, 0, 0, .08);
+        border-radius: 12px;
+        padding: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        background: #fff;
         box-shadow: inset 0 0 0 1px transparent;
     }
-    .methodCard + .methodCard { margin-top:10px; }
-    .methodLeft { display:flex; align-items:center; gap:10px; }
-    .methodIcon { width:32px; height:32px; border-radius:999px; display:grid; place-items:center; font-size:16px; }
-    .methodTitle { font-size:13px; font-weight:900; color:#111827; margin:0; }
+
+    .methodCard+.methodCard {
+        margin-top: 10px;
+    }
+
+    .methodLeft {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .methodIcon {
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        font-size: 16px;
+    }
+
+    .methodTitle {
+        font-size: 13px;
+        font-weight: 900;
+        color: #111827;
+        margin: 0;
+    }
+
     .feeBox {
-        margin-top:16px;
-        border:1px solid rgba(239,68,68,.25);
-        background: rgba(239,68,68,.08);
-        border-radius:12px;
-        padding:12px;
-        font-size:12px;
-        font-weight:800;
-        color:#991b1b;
+        margin-top: 16px;
+        border: 1px solid rgba(239, 68, 68, .25);
+        background: rgba(239, 68, 68, .08);
+        border-radius: 12px;
+        padding: 12px;
+        font-size: 12px;
+        font-weight: 800;
+        color: #991b1b;
     }
+
     .primaryBtn {
-        width:100%;
-        height:42px;
-        border-radius:10px;
-        background:#0b0c10;
-        color:#fff;
-        font-size:13px;
-        font-weight:900;
-        border:none;
-        cursor:pointer;
-        margin-top:16px;
+        width: 100%;
+        height: 42px;
+        border-radius: 10px;
+        background: #0b0c10;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 900;
+        border: none;
+        cursor: pointer;
+        margin-top: 16px;
     }
+
     .withdrawalDetailsSection {
         display: none;
         margin-top: 16px;
         padding: 14px;
         background: #f9fafb;
         border-radius: 10px;
-        border: 1px solid rgba(0,0,0,.08);
+        border: 1px solid rgba(0, 0, 0, .08);
     }
+
     .withdrawalDetailsSection.show {
         display: block;
     }
+
     .formInput:disabled {
         background: #f3f4f6;
         opacity: 0.6;
         cursor: not-allowed;
     }
+
     .formTextarea {
-        width:100%;
-        min-height:80px;
-        padding:10px 12px;
-        border:1px solid rgba(0,0,0,.12);
-        border-radius:10px;
-        font-size:13px;
-        font-weight:700;
-        color:#111827;
+        width: 100%;
+        min-height: 80px;
+        padding: 10px 12px;
+        border: 1px solid rgba(0, 0, 0, .12);
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #111827;
         font-family: 'Courier New', monospace;
         resize: vertical;
     }
@@ -107,7 +183,7 @@
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function() {
     const amountInput = document.querySelector('input[name="amount"]');
     const methodRadios = document.querySelectorAll('input[name="payment_method_id"]');
     const withdrawalDetailsSections = document.querySelectorAll('.withdrawalDetailsSection');
@@ -226,21 +302,24 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="lowerGrid" style="grid-template-columns: 1fr; margin-top: 12px;">
         <div class="walletFormWrap">
             @if ($errors->any())
-                <div style="margin-bottom: 12px; padding: 10px 12px; border-radius: 10px; background:#fee2e2; border:1px solid #fecaca; font-size:12px; color:#991b1b;">
-                    @foreach ($errors->all() as $error)
-                        <div>{{ $error }}</div>
-                    @endforeach
-                </div>
+            <div
+                style="margin-bottom: 12px; padding: 10px 12px; border-radius: 10px; background:#fee2e2; border:1px solid #fecaca; font-size:12px; color:#991b1b;">
+                @foreach ($errors->all() as $error)
+                <div>{{ $error }}</div>
+                @endforeach
+            </div>
             @endif
             @if (session('error'))
-                <div style="margin-bottom: 12px; padding: 10px 12px; border-radius: 10px; background:#fee2e2; border:1px solid #fecaca; font-size:12px; color:#991b1b;">
-                    {{ session('error') }}
-                </div>
+            <div
+                style="margin-bottom: 12px; padding: 10px 12px; border-radius: 10px; background:#fee2e2; border:1px solid #fecaca; font-size:12px; color:#991b1b;">
+                {{ session('error') }}
+            </div>
             @endif
             @if (session('success'))
-                <div style="margin-bottom: 12px; padding: 10px 12px; border-radius: 10px; background:#dcfce7; border:1px solid #bbf7d0; font-size:12px; color:#166534;">
-                    {{ session('success') }}
-                </div>
+            <div
+                style="margin-bottom: 12px; padding: 10px 12px; border-radius: 10px; background:#dcfce7; border:1px solid #bbf7d0; font-size:12px; color:#166534;">
+                {{ session('success') }}
+            </div>
             @endif
             <div class="walletHero">
                 <div>
@@ -253,19 +332,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </div>
 
-            <form method="POST" action="{{ route('dashboard.wallet.withdraw.submit') }}" style="display:flex; flex-direction:column; gap:16px;">
+            <form method="POST" action="{{ route('dashboard.wallet.withdraw.submit') }}"
+                style="display:flex; flex-direction:column; gap:16px;">
                 @csrf
                 <div>
                     <label class="formLabel">Withdrawal Amount</label>
-                    <input
-                        type="number"
-                        step="0.01"
-                        min="1"
-                        name="amount"
-                        class="formInput"
-                        placeholder="$ 0.00"
-                        value="{{ old('amount') }}"
-                    />
+                    <input type="number" step="0.01" min="1" name="amount" class="formInput" placeholder="$ 0.00"
+                        value="{{ old('amount') }}" />
                     <p class="hintText">Maximum withdrawal: ${{ number_format($currentBalance, 2) }}</p>
                 </div>
 
@@ -273,120 +346,79 @@ document.addEventListener('DOMContentLoaded', function() {
                     <label class="formLabel">Withdrawal Method</label>
 
                     @foreach($withdrawMethods as $index => $method)
-                        <div class="methodCard" @if($index === 1) style="background:#f9fafb;" @endif>
-                            <div class="methodLeft">
-                                <input
-                                    type="radio"
-                                    name="payment_method_id"
-                                    value="{{ $method->id }}"
-                                    @checked(old('payment_method_id', $withdrawMethods->first()->id ?? null) == $method->id)
-                                >
-                                <div class="methodIcon" style="background:#f3f4f6;">
-                                    @if($method->logo_url)
-                                        <img src="{{ $method->logo_url }}" alt="{{ $method->name }}" style="width:24px; height:24px; object-fit:contain;">
-                                    @else
-                                        <span style="font-size:12px; font-weight:900; color:#111827;">{{ strtoupper(substr($method->name,0,2)) }}</span>
-                                    @endif
-                                </div>
-                                <div>
-                                    <p class="methodTitle">{{ $method->name }}</p>
-                                </div>
+                    <div class="methodCard" @if($index===1) style="background:#f9fafb;" @endif>
+                        <div class="methodLeft">
+                            <input type="radio" name="payment_method_id" value="{{ $method->id }}"
+                                @checked(old('payment_method_id', $withdrawMethods->first()->id ?? null) == $method->id)
+                            >
+                            <div class="methodIcon" style="background:#f3f4f6;">
+                                @if($method->logo_url)
+                                <img src="{{ $method->logo_url }}" alt="{{ $method->name }}"
+                                    style="width:24px; height:24px; object-fit:contain;">
+                                @else
+                                <span style="font-size:12px; font-weight:900; color:#111827;">{{
+                                    strtoupper(substr($method->name,0,2)) }}</span>
+                                @endif
                             </div>
-                            <span style="color:#9ca3af;">➜</span>
+                            <div>
+                                <p class="methodTitle">{{ $method->name }}</p>
+                            </div>
                         </div>
-                        
-                        @if($method->category === 'crypto')
-                            <div class="withdrawalDetailsSection" data-method-id="{{ $method->id }}">
-                                <label class="formLabel">Your {{ $method->name }} Wallet Address</label>
-                                <input
-                                    type="text"
-                                    name="wallet_address"
-                                    class="formInput"
-                                    placeholder="Enter your {{ $method->name }} wallet address"
-                                    value="{{ old('wallet_address') }}"
-                                    data-required="true"
-                                    disabled
-                                />
-                                <p class="hintText">Make sure to enter the correct wallet address. Funds cannot be recovered if sent to the wrong address.</p>
+                        <span style="color:#9ca3af;">➜</span>
+                    </div>
+
+                    @if($method->category === 'crypto')
+                    <div class="withdrawalDetailsSection" data-method-id="{{ $method->id }}">
+                        <label class="formLabel">Your {{ $method->name }} Wallet Address</label>
+                        <input type="text" name="wallet_address" class="formInput"
+                            placeholder="Enter your {{ $method->name }} wallet address"
+                            value="{{ old('wallet_address') }}" data-required="true" disabled />
+                        <p class="hintText">Make sure to enter the correct wallet address. Funds cannot be recovered if
+                            sent to the wrong address.</p>
+                    </div>
+                    @elseif($method->category === 'bank')
+                    <div class="withdrawalDetailsSection" data-method-id="{{ $method->id }}">
+                        <div style="display:flex; flex-direction:column; gap:12px;">
+                            <div>
+                                <label class="formLabel">Bank Name</label>
+                                <input type="text" name="bank_name" class="formInput" placeholder="Enter your bank name"
+                                    value="{{ old('bank_name') }}" data-required="true" disabled />
                             </div>
-                        @elseif($method->category === 'bank')
-                            <div class="withdrawalDetailsSection" data-method-id="{{ $method->id }}">
-                                <div style="display:flex; flex-direction:column; gap:12px;">
-                                    <div>
-                                        <label class="formLabel">Bank Name</label>
-                                        <input
-                                            type="text"
-                                            name="bank_name"
-                                            class="formInput"
-                                            placeholder="Enter your bank name"
-                                            value="{{ old('bank_name') }}"
-                                            data-required="true"
-                                            disabled
-                                        />
-                                    </div>
-                                    <div>
-                                        <label class="formLabel">Account Name</label>
-                                        <input
-                                            type="text"
-                                            name="account_name"
-                                            class="formInput"
-                                            placeholder="Enter account holder name"
-                                            value="{{ old('account_name') }}"
-                                            data-required="true"
-                                            disabled
-                                        />
-                                    </div>
-                                    <div>
-                                        <label class="formLabel">Account Number</label>
-                                        <input
-                                            type="text"
-                                            name="account_number"
-                                            class="formInput"
-                                            placeholder="Enter your account number"
-                                            value="{{ old('account_number') }}"
-                                            data-required="true"
-                                            disabled
-                                        />
-                                    </div>
-                                    <div>
-                                        <label class="formLabel">IBAN (Optional)</label>
-                                        <input
-                                            type="text"
-                                            name="iban"
-                                            class="formInput"
-                                            placeholder="Enter IBAN if applicable"
-                                            value="{{ old('iban') }}"
-                                            disabled
-                                        />
-                                    </div>
-                                    <div>
-                                        <label class="formLabel">SWIFT/BIC (Optional)</label>
-                                        <input
-                                            type="text"
-                                            name="swift_bic"
-                                            class="formInput"
-                                            placeholder="Enter SWIFT/BIC code if applicable"
-                                            value="{{ old('swift_bic') }}"
-                                            disabled
-                                        />
-                                    </div>
-                                </div>
+                            <div>
+                                <label class="formLabel">Account Name</label>
+                                <input type="text" name="account_name" class="formInput"
+                                    placeholder="Enter account holder name" value="{{ old('account_name') }}"
+                                    data-required="true" disabled />
                             </div>
-                        @elseif($method->category === 'wallet')
-                            <div class="withdrawalDetailsSection" data-method-id="{{ $method->id }}">
-                                <label class="formLabel">Your {{ $method->name }} Email</label>
-                                <input
-                                    type="email"
-                                    name="wallet_email"
-                                    class="formInput"
-                                    placeholder="Enter your {{ $method->name }} email address"
-                                    value="{{ old('wallet_email') }}"
-                                    data-required="true"
-                                    disabled
-                                />
-                                <p class="hintText">Enter the email address associated with your {{ $method->name }} account.</p>
+                            <div>
+                                <label class="formLabel">Account Number</label>
+                                <input type="text" name="account_number" class="formInput"
+                                    placeholder="Enter your account number" value="{{ old('account_number') }}"
+                                    data-required="true" disabled />
                             </div>
-                        @endif
+                            <div>
+                                <label class="formLabel">IBAN (Optional)</label>
+                                <input type="text" name="iban" class="formInput" placeholder="Enter IBAN if applicable"
+                                    value="{{ old('iban') }}" disabled />
+                            </div>
+                            <div>
+                                <label class="formLabel">SWIFT/BIC (Optional)</label>
+                                <input type="text" name="swift_bic" class="formInput"
+                                    placeholder="Enter SWIFT/BIC code if applicable" value="{{ old('swift_bic') }}"
+                                    disabled />
+                            </div>
+                        </div>
+                    </div>
+                    @elseif($method->category === 'wallet')
+                    <div class="withdrawalDetailsSection" data-method-id="{{ $method->id }}">
+                        <label class="formLabel">Your {{ $method->name }} Email</label>
+                        <input type="email" name="wallet_email" class="formInput"
+                            placeholder="Enter your {{ $method->name }} email address" value="{{ old('wallet_email') }}"
+                            data-required="true" disabled />
+                        <p class="hintText">Enter the email address associated with your {{ $method->name }} account.
+                        </p>
+                    </div>
+                    @endif
                     @endforeach
                 </div>
 
@@ -403,4 +435,3 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 </div>
 @endsection
-
