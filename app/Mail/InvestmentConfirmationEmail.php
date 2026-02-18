@@ -36,7 +36,7 @@ class InvestmentConfirmationEmail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Investment Confirmation - TESLA',
+            subject: 'Investment Confirmation - Primerica Global Capital',
         );
     }
 

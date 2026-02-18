@@ -31,7 +31,7 @@ class LoginNotificationEmail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'New Login to Your TESLA Account',
+            subject: 'New Login to Your Primerica Global Capital Account',
         );
     }
 

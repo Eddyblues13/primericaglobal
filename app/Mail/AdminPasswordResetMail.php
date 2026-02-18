@@ -33,7 +33,7 @@ class AdminPasswordResetMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Reset Your Admin Password - TESLA',
+            subject: 'Reset Your Admin Password - Primerica Global Capital',
         );
     }
 

@@ -31,7 +31,7 @@ class VerificationCodeEmail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Verify Your Email Address - TESLA',
+            subject: 'Verify Your Email Address - Primerica Global Capital',
         );
     }
 

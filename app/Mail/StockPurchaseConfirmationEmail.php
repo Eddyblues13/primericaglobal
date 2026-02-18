@@ -46,7 +46,7 @@ class StockPurchaseConfirmationEmail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Stock Purchase Confirmation - TESLA',
+            subject: 'Stock Purchase Confirmation - Primerica Global Capital',
         );
     }
 

@@ -33,7 +33,7 @@ class PasswordResetMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Reset Your Password - TESLA',
+            subject: 'Reset Your Password - Primerica Global Capital',
         );
     }
 

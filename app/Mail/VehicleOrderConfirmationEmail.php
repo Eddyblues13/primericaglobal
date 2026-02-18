@@ -41,7 +41,7 @@ class VehicleOrderConfirmationEmail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Vehicle Order Confirmation - TESLA',
+            subject: 'Vehicle Order Confirmation - Primerica Global Capital',
         );
     }
 
