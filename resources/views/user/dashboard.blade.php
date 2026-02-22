@@ -225,7 +225,7 @@
     <div class="dashboard-video-wrap">
         <video id="dashboardVideo" controls autoplay muted loop playsinline preload="auto"
             poster="{{ asset('images/logo.png') }}">
-            <source src="{{ asset('videos/Primrica Global Capital2.mp4') }}" type="video/mp4">
+            <source src="{{ asset('videos/tesla2.mp4') }}" type="video/mp4">
         </video>
     </div>
 

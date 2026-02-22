@@ -115,7 +115,7 @@ Primrica Global Capital vehicle purchases.')
                         style="aspect-ratio: 16/9; background: #000;">
                         <video id="heroVideo" class="w-full h-full object-cover" controls autoplay muted loop
                             playsinline preload="auto" poster="{{ asset('images/logo.png') }}">
-                            <source src="{{ asset('videos/Primrica Global Capital1.mp4') }}" type="video/mp4">
+                            <source src="{{ asset('videos/tesla1.mp4') }}" type="video/mp4">
                             Your browser does not support the video tag.
                         </video>
                     </div>
